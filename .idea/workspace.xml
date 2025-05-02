@@ -4,7 +4,12 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a58c177e-5c28-4ac2-acac-111a9b7e2743" name="Changes" comment="First commit" />
+    <list default="true" id="e3e0418d-e1be-482b-9a03-8209a4c65957" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/deploymentTargetSelector.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -13,7 +18,6 @@
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=LocalEmulator, isTemplate=false, identifier=path=C:\Users\oc313\.android\avd\Pixel_8a_API_35.avd)]" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
@@ -22,11 +26,23 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo">{
-  &quot;associatedIndex&quot;: 0
-}</component>
-  <component name="ProjectId" id="2wVPhjH1co5y95Y1J6aYq8wJCqy" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "o-ebit"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/o-ebit/AndroidTaskApp.git",
+    "accountId": "e127d3ba-951d-4358-b34a-fb3aaa7f7448"
+  }
+}]]></component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "customColor": "",
+  "associatedIndex": 0
+}]]></component>
+  <component name="ProjectId" id="2wWyZxlFmgG2dscAZQrVHnJRrIw" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -39,108 +55,19 @@
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
     "git-widget-placeholder": "main",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/oc313/Dropbox/AndroidStudioProjects/TaskApp",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.17",
-    "project.structure.side.proportion": "0.2"
-  },
-  "keyToStringList": {
-    "kotlin-gradle-user-dirs": [
-      "C:\\Users\\oc313\\.gradle"
-    ]
+    "ignore.virus.scanning.warn.message": "true",
+    "kotlin-language-version-configured": "true"
   }
 }]]></component>
-  <component name="RunManager">
-    <configuration name="app" type="AndroidRunConfigurationType" factoryName="Android App" activateToolWindowBeforeRun="false">
-      <module name="TaskApp.app.main" />
-      <option name="DEPLOY" value="true" />
-      <option name="DEPLOY_APK_FROM_BUNDLE" value="false" />
-      <option name="DEPLOY_AS_INSTANT" value="false" />
-      <option name="ARTIFACT_NAME" value="" />
-      <option name="PM_INSTALL_OPTIONS" value="" />
-      <option name="ALL_USERS" value="false" />
-      <option name="ALWAYS_INSTALL_WITH_PM" value="false" />
-      <option name="CLEAR_APP_STORAGE" value="false" />
-      <option name="DYNAMIC_FEATURES_DISABLED_LIST" value="" />
-      <option name="ACTIVITY_EXTRA_FLAGS" value="" />
-      <option name="MODE" value="default_activity" />
-      <option name="CLEAR_LOGCAT" value="false" />
-      <option name="SHOW_LOGCAT_AUTOMATICALLY" value="false" />
-      <option name="TARGET_SELECTION_MODE" value="DEVICE_AND_SNAPSHOT_COMBO_BOX" />
-      <option name="SELECTED_CLOUD_MATRIX_CONFIGURATION_ID" value="-1" />
-      <option name="SELECTED_CLOUD_MATRIX_PROJECT_ID" value="" />
-      <option name="DEBUGGER_TYPE" value="Auto" />
-      <Auto>
-        <option name="USE_JAVA_AWARE_DEBUGGER" value="false" />
-        <option name="SHOW_STATIC_VARS" value="true" />
-        <option name="WORKING_DIR" value="" />
-        <option name="TARGET_LOGGING_CHANNELS" value="lldb process:gdb-remote packets" />
-        <option name="SHOW_OPTIMIZED_WARNING" value="true" />
-        <option name="ATTACH_ON_WAIT_FOR_DEBUGGER" value="false" />
-        <option name="DEBUG_SANDBOX_SDK" value="false" />
-      </Auto>
-      <Hybrid>
-        <option name="USE_JAVA_AWARE_DEBUGGER" value="false" />
-        <option name="SHOW_STATIC_VARS" value="true" />
-        <option name="WORKING_DIR" value="" />
-        <option name="TARGET_LOGGING_CHANNELS" value="lldb process:gdb-remote packets" />
-        <option name="SHOW_OPTIMIZED_WARNING" value="true" />
-        <option name="ATTACH_ON_WAIT_FOR_DEBUGGER" value="false" />
-        <option name="DEBUG_SANDBOX_SDK" value="false" />
-      </Hybrid>
-      <Java>
-        <option name="ATTACH_ON_WAIT_FOR_DEBUGGER" value="false" />
-        <option name="DEBUG_SANDBOX_SDK" value="false" />
-      </Java>
-      <Native>
-        <option name="USE_JAVA_AWARE_DEBUGGER" value="false" />
-        <option name="SHOW_STATIC_VARS" value="true" />
-        <option name="WORKING_DIR" value="" />
-        <option name="TARGET_LOGGING_CHANNELS" value="lldb process:gdb-remote packets" />
-        <option name="SHOW_OPTIMIZED_WARNING" value="true" />
-        <option name="ATTACH_ON_WAIT_FOR_DEBUGGER" value="false" />
-        <option name="DEBUG_SANDBOX_SDK" value="false" />
-      </Native>
-      <Profilers>
-        <option name="ADVANCED_PROFILING_ENABLED" value="false" />
-        <option name="STARTUP_PROFILING_ENABLED" value="false" />
-        <option name="STARTUP_CPU_PROFILING_ENABLED" value="false" />
-        <option name="STARTUP_CPU_PROFILING_CONFIGURATION_NAME" value="Java/Kotlin Method Sample (legacy)" />
-        <option name="STARTUP_NATIVE_MEMORY_PROFILING_ENABLED" value="false" />
-        <option name="NATIVE_MEMORY_SAMPLE_RATE_BYTES" value="2048" />
-      </Profilers>
-      <option name="DEEP_LINK" value="" />
-      <option name="ACTIVITY_CLASS" value="" />
-      <option name="SEARCH_ACTIVITY_IN_GLOBAL_SCOPE" value="false" />
-      <option name="SKIP_ACTIVITY_VALIDATION" value="false" />
-      <method v="2">
-        <option name="Android.Gradle.BeforeRunTask" enabled="true" />
-      </method>
-    </configuration>
-  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="a58c177e-5c28-4ac2-acac-111a9b7e2743" name="Changes" comment="" />
-      <created>1746123888238</created>
+      <changelist id="e3e0418d-e1be-482b-9a03-8209a4c65957" name="Changes" comment="" />
+      <created>1746171683962</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1746123888238</updated>
+      <updated>1746171683962</updated>
     </task>
-    <task id="LOCAL-00001" summary="First commit">
-      <option name="closed" value="true" />
-      <created>1746170788954</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1746170788954</updated>
-    </task>
-    <option name="localTasksCounter" value="2" />
     <servers />
-  </component>
-  <component name="VcsManagerConfiguration">
-    <MESSAGE value="First commit" />
-    <option name="LAST_COMMIT_MESSAGE" value="First commit" />
   </component>
 </project>
