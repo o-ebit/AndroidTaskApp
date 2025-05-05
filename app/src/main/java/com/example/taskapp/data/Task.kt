@@ -18,5 +18,6 @@ data class Task(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val listId: Int,
     val text: String,
-    val done: Boolean = false
+    val done: Boolean = false,
+    val pos: Int
 )

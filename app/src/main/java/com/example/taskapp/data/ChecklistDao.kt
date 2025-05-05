@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Insert
 import androidx.room.Delete
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -13,4 +14,5 @@ interface ChecklistDao {
     fun get(id: Int): Flow<Checklist?>
     @Insert suspend fun insert(list: Checklist)
     @Delete suspend fun delete(list: Checklist)
+    @Update suspend fun update(list: Checklist)
 }

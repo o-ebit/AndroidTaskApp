@@ -35,4 +35,16 @@ class TasksVm(app: Application, state: SavedStateHandle) : AndroidViewModel(app)
         repo.toggle(task)
     }
     fun delete(task: Task) = viewModelScope.launch { repo.deleteTask(task) }
+
+    fun move(from: Int, to: Int) = viewModelScope.launch {
+        if (from == to) return@launch
+        val current = tasks.value.toMutableList()
+        val item = current.removeAt(from)
+        current.add(to, item)
+        val reordered = current.mapIndexed { i, t -> t.copy(pos = i) }
+        repo.moveTasks(reordered)          // DAO method that does @Update on list
+    }
+    fun rename(task: Task, newText: String) = viewModelScope.launch {
+        repo.renameTask(task, newText)
+    }
 }

@@ -15,4 +15,7 @@ class ListsVm(app: Application) : AndroidViewModel(app) {
 
     fun add(title: String) = viewModelScope.launch { repo.addList(title) }
     fun delete(list: Checklist) = viewModelScope.launch { repo.deleteList(list) }
+    fun rename(list: Checklist, newTitle: String) = viewModelScope.launch {
+        repo.renameList(list, newTitle)
+    }
 }
