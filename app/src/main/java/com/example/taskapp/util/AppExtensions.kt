@@ -9,4 +9,4 @@ val Context.db: AppDatabase
         applicationContext,
         AppDatabase::class.java,
         "checklists.db"
-    ).build()
+    ).fallbackToDestructiveMigration(false).build()

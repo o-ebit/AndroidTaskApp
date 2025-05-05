@@ -3,8 +3,7 @@ package com.example.taskapp.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.example.taskapp.data.Task
 import com.example.taskapp.data.ChecklistRepository
@@ -13,18 +12,20 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.map
 
-class TasksVm(
-    app: Application,
-    private val listId: Int
-) : AndroidViewModel(app) {
-
+class TasksVm(app: Application, state: SavedStateHandle) : AndroidViewModel(app) {
+    private val listId = state.get<Int>("listId")!!
     private val repo = ChecklistRepository(app.db)
 
     /** stream of tasks in this checklist */
     val tasks: StateFlow<List<Task>> =
         repo.listItems(listId)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    val title: StateFlow<String> = repo.checklist(listId)
+        .map { it?.title ?: "" }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
 
     fun add(text: String) = viewModelScope.launch {
         repo.addTask(listId, text)
@@ -33,11 +34,5 @@ class TasksVm(
     fun toggle(task: Task) = viewModelScope.launch {
         repo.toggle(task)
     }
-
-    companion object {
-        /** pass `listId` from the composable */
-        fun Factory(app: Application, listId: Int) = viewModelFactory {
-            initializer { TasksVm(app, listId) }
-        }
-    }
+    fun delete(task: Task) = viewModelScope.launch { repo.deleteTask(task) }
 }

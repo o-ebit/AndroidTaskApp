@@ -12,4 +12,6 @@ class ChecklistRepository(private val db: AppDatabase) {
 
     suspend fun toggle(task: Task) =
         db.taskDao().update(task.copy(done = !task.done))
+    suspend fun deleteTask(task: Task) = db.taskDao().delete(task)
+    fun checklist(id: Int) = db.checklistDao().get(id)
 }

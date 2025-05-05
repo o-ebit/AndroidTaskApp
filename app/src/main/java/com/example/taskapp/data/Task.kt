@@ -3,6 +3,7 @@ package com.example.taskapp.data
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
+import androidx.room.Index
 
 @Entity(
     foreignKeys = [ForeignKey(
@@ -10,7 +11,8 @@ import androidx.room.PrimaryKey
         parentColumns = ["id"],
         childColumns = ["listId"],
         onDelete = ForeignKey.CASCADE
-    )]
+    )],
+    indices = [Index(value = ["listId"])]
 )
 data class Task(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
