@@ -12,20 +12,13 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="95287d2c-9379-4c48-bc6a-ef10af53a523" name="Changes" comment="added date">
-      <change afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/ui/DebugBackScreen.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/ui/TodoScreen.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/viewmodel/TodosVm.kt" afterDir="false" />
+    <list default="true" id="95287d2c-9379-4c48-bc6a-ef10af53a523" name="Changes" comment="added date and to do screen">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/MainActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/MainActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/data/AppDatabase.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/data/AppDatabase.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/data/ChecklistRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/data/ChecklistRepository.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/data/Task.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/data/Task.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/data/TaskDao.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/data/TaskDao.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/ui/AppNav.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/ui/AppNav.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/ui/DebugBackScreen.kt" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/ui/ListsScreen.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/ui/ListsScreen.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/ui/TaskScreen.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/ui/TaskScreen.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/viewmodel/TasksVm.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/viewmodel/TasksVm.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/ui/TodoScreen.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/ui/TodoScreen.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -94,9 +87,9 @@
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\oc313\Dropbox\AndroidStudioProjects\TaskApp\app\src\main\java\com\example\taskapp\ui" />
       <recent name="C:\Users\oc313\Dropbox\AndroidStudioProjects\TaskApp" />
       <recent name="C:\Users\oc313\Dropbox\AndroidStudioProjects\TaskApp\app\src\main\java\com\example\taskapp\util" />
-      <recent name="C:\Users\oc313\Dropbox\AndroidStudioProjects\TaskApp\app\src\main\java\com\example\taskapp\ui" />
     </key>
     <key name="MoveKotlinTopLevelDeclarationsDialog.RECENTS_KEY">
       <recent name="com.example.taskapp.viewmodel" />
@@ -228,13 +221,22 @@
       <option name="project" value="LOCAL" />
       <updated>1746705700195</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="added date and to do screen">
+      <option name="closed" value="true" />
+      <created>1746710807137</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1746710807137</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Version 1" />
     <MESSAGE value="Initial version" />
     <MESSAGE value="added date" />
-    <option name="LAST_COMMIT_MESSAGE" value="added date" />
+    <MESSAGE value="added date and to do screen" />
+    <option name="LAST_COMMIT_MESSAGE" value="added date and to do screen" />
   </component>
 </project>

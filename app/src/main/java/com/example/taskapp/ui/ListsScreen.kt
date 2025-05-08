@@ -2,15 +2,41 @@ package com.example.taskapp.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,46 +47,47 @@ import com.example.taskapp.data.Checklist
 import com.example.taskapp.viewmodel.ListsVm
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListsScreen(
     nav: NavHostController,
     vm: ListsVm = viewModel()
 ) {
     val lists by vm.lists.collectAsState()
-    var newTitle by remember { mutableStateOf("") }
-
+    var showAdd by remember { mutableStateOf(false) }
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Checklists") },
-                actions = {
-                    IconButton(onClick = { nav.navigate("todos") }) {
-                        Icon(Icons.Default.List, contentDescription = "To-dos")
-                    }
-                    IconButton(onClick = {
-                        if (newTitle.isNotBlank()) {
-                            vm.add(newTitle)
-                            newTitle = ""
-                        }
-                    }) {
-                        Icon(Icons.Default.Add, contentDescription = "Add checklist")
-                    }
-                }
-            )
-        }
-    ) { pad ->
-        Column(Modifier.padding(pad).fillMaxSize()) {
-
-            OutlinedTextField(
-                value = newTitle,
-                onValueChange = { newTitle = it },
-                placeholder = { Text("New checklist") },
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
-            )
+                    .padding(horizontal = 16.dp, vertical = 40.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextButton(
+                    onClick = { nav.navigate("todos") },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFEEEEEE),
+                        contentColor = Color.Black
+                    )
+                ) {
+                    Text(
+                        text = "Today's tasks",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
 
+                IconButton(onClick = { showAdd = true }) {
+                    Icon(Icons.Default.Add, contentDescription = "Add checklist")
+                }
+            }
+
+        }
+    ) { pad ->
+        Column(
+            Modifier
+                .padding(pad)
+                .fillMaxSize()
+        ) {
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
@@ -167,6 +194,31 @@ fun ListsScreen(
                         )
                     }
                 }
+            }
+            if (showAdd) {
+                var draft by remember { mutableStateOf("") }
+                AlertDialog(
+                    onDismissRequest = { showAdd = false },
+                    title = { Text("New checklist") },
+                    text = {
+                        OutlinedTextField(
+                            value = draft,
+                            onValueChange = { draft = it },
+                            singleLine = true
+                        )
+                    },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            if (draft.isNotBlank()) {
+                                vm.add(draft)
+                                showAdd = false
+                            }
+                        }) { Text("Add") }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showAdd = false }) { Text("Cancel") }
+                    }
+                )
             }
         }
     }

@@ -121,7 +121,7 @@ fun TodoScreen(
                     }
                 }
 
-                Divider(thickness = 0.5.dp)
+                HorizontalDivider(thickness = 0.5.dp)
             }
         }
 
