@@ -27,8 +27,8 @@ class TasksVm(app: Application, state: SavedStateHandle) : AndroidViewModel(app)
         .map { it?.title ?: "" }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
 
-    fun add(text: String) = viewModelScope.launch {
-        repo.addTask(listId, text)
+    fun add(text: String, due: String?) = viewModelScope.launch {
+        repo.addTask(listId, text, due)
     }
 
     fun toggle(task: Task) = viewModelScope.launch {
@@ -44,7 +44,7 @@ class TasksVm(app: Application, state: SavedStateHandle) : AndroidViewModel(app)
         val reordered = current.mapIndexed { i, t -> t.copy(pos = i) }
         repo.moveTasks(reordered)          // DAO method that does @Update on list
     }
-    fun rename(task: Task, newText: String) = viewModelScope.launch {
-        repo.renameTask(task, newText)
+    fun rename(task: Task, newText: String, newDue: String?) = viewModelScope.launch {
+        repo.renameTask(task, newText, newDue)
     }
 }

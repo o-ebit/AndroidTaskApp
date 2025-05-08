@@ -19,5 +19,9 @@ data class Task(
     val listId: Int,
     val text: String,
     val done: Boolean = false,
-    val pos: Int
+    val pos: Int,
+    /**  null  ➜ no due date
+     *  "EVERYDAY" ➜ special label
+     *  ISO-8601 date (yyyy-MM-dd) ➜ single due date */
+    val due: String? = null
 )

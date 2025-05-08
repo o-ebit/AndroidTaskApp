@@ -1,8 +1,18 @@
 package com.example.taskapp.ui
 
+import androidx.compose.material3.*
+import androidx.compose.foundation.*
 import android.app.Application
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
@@ -11,8 +21,33 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,6 +60,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.taskapp.viewmodel.TasksVm
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,7 +85,7 @@ fun TasksScreen(
     /* --- state --- */
     val tasks by vm.tasks.collectAsState()
     val title by vm.title.collectAsState("")
-    var newText by remember { mutableStateOf("") }
+    var showAdd by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -60,28 +97,17 @@ fun TasksScreen(
                     }
                 },
                 actions = {
-                    IconButton(
-                        onClick = {
-                            if (newText.isNotBlank()) {
-                                vm.add(newText)
-                                newText = ""
-                            }
-                        }
-                    ) { Icon(Icons.Default.Add, null) }
+                    IconButton(onClick = { showAdd = true }) {
+                        Icon(Icons.Default.Add, null)
+                    }
                 }
             )
         }
     ) { pad ->
-        Column(Modifier.padding(pad).fillMaxSize()) {
-
-            OutlinedTextField(
-                value = newText,
-                onValueChange = { newText = it },
-                placeholder = { Text("New item") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            )
+        Column(
+            Modifier
+                .padding(pad)
+                .fillMaxSize()) {
 
             LazyColumn(
                 modifier = Modifier
@@ -93,7 +119,6 @@ fun TasksScreen(
                     /* --- per‑row state --- */
                     var ask by remember { mutableStateOf(false) }
                     var edit by remember { mutableStateOf(false) }
-                    var draft by remember { mutableStateOf(task.text) }
                     val scope = rememberCoroutineScope()
 
                     val dismissState = rememberSwipeToDismissBoxState(
@@ -131,7 +156,9 @@ fun TasksScreen(
                                 .padding(horizontal = 8.dp, vertical = 2.dp)
                                 .combinedClickable(
                                     onClick = {},          // no-op tap
-                                    onLongClick = { edit = true }
+                                    onLongClick = {
+                                        edit = true
+                                    }
                                 ),
                             elevation = CardDefaults.cardElevation(0.dp)
                         ) {
@@ -156,44 +183,60 @@ fun TasksScreen(
                                     textDecoration = if (task.done) TextDecoration.LineThrough else null
                                 )
 
+                                val dueLabel = when (task.due) {
+                                    null -> ""
+                                    "EVERYDAY" -> "Every day"
+                                    else -> LocalDate.parse(task.due)
+                                        .format(DateTimeFormatter.ofPattern("dd MMM"))
+                                }
+
+                                Text(
+                                    dueLabel,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    modifier = Modifier.padding(end = 8.dp)
+                                )
                                 /* ▲ up */
                                 IconButton(
                                     onClick = { if (index > 0) vm.move(index, index - 1) },
                                     enabled = index > 0,
                                     modifier = Modifier.size(32.dp)
-                                ) { Icon(Icons.Default.KeyboardArrowUp, null, Modifier.size(18.dp)) }
+                                ) {
+                                    Icon(
+                                        Icons.Default.KeyboardArrowUp,
+                                        null,
+                                        Modifier.size(18.dp)
+                                    )
+                                }
 
                                 /* ▼ down */
                                 IconButton(
-                                    onClick = { if (index < tasks.lastIndex) vm.move(index, index + 1) },
+                                    onClick = {
+                                        if (index < tasks.lastIndex) vm.move(
+                                            index,
+                                            index + 1
+                                        )
+                                    },
                                     enabled = index < tasks.lastIndex,
                                     modifier = Modifier.size(32.dp)
-                                ) { Icon(Icons.Default.KeyboardArrowDown, null, Modifier.size(18.dp)) }
+                                ) {
+                                    Icon(
+                                        Icons.Default.KeyboardArrowDown,
+                                        null,
+                                        Modifier.size(18.dp)
+                                    )
+                                }
                             }
                         }
                     }
 
                     /* ---- Edit dialog ---- */
                     if (edit) {
-                        AlertDialog(
-                            onDismissRequest = { edit = false },
-                            title = { Text("Edit item") },
-                            text = {
-                                OutlinedTextField(
-                                    value = draft,
-                                    onValueChange = { draft = it },
-                                    singleLine = true
-                                )
-                            },
-                            confirmButton = {
-                                TextButton(onClick = {
-                                    if (draft.isNotBlank()) vm.rename(task, draft)
-                                    edit = false
-                                }) { Text("Save") }
-                            },
-                            dismissButton = {
-                                TextButton(onClick = { edit = false }) { Text("Cancel") }
-                            }
+                        TaskEditDialog(
+                            title = "Edit item",
+                            initialText = task.text,
+                            initialDue = task.due,
+                            onSave = { t, d -> vm.rename(task, t, d); edit = false },
+                            onDismiss = { edit = false }
                         )
                     }
 
@@ -224,4 +267,115 @@ fun TasksScreen(
             }
         }
     }
+    if (showAdd) {
+        TaskEditDialog(
+            title = "New item",
+            initialText = "",
+            initialDue = null,
+            onSave = { t, d -> vm.add(t, d); showAdd = false },
+            onDismiss = { showAdd = false }
+        )
+    }
+}
+
+@Composable
+fun CompactChip(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        shape = MaterialTheme.shapes.small,
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        tonalElevation = 1.dp,
+        modifier = modifier
+            .padding(end = 4.dp)
+            .clickable(onClick = onClick)
+    ) {
+        Text(
+            text,
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TaskEditDialog(
+    title: String,
+    initialText: String,
+    initialDue: String?,
+    onSave: (String, String?) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var text by remember { mutableStateOf(initialText) }
+    var due by remember { mutableStateOf(initialDue) }
+    var pickDate by remember { mutableStateOf(false) }
+
+    if (pickDate) {
+        val pickerState = rememberDatePickerState()
+        DatePickerDialog(
+            onDismissRequest = { pickDate = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val millis = pickerState.selectedDateMillis
+                        if (millis != null) {
+                            due = LocalDate.ofEpochDay(millis / 86_400_000)
+                                .toString() // formatted as yyyy-MM-dd
+                        }
+                        pickDate = false
+                    }
+                ) { Text("OK") }
+            },
+            dismissButton = {
+                TextButton(onClick = { pickDate = false }) { Text("Cancel") }
+            },
+            content = {
+                DatePicker(state = pickerState)
+            }
+        )
+    }
+
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    label = { Text("Task") },
+                    singleLine = true
+                )
+                Spacer(Modifier.height(8.dp))
+                Row {
+                    CompactChip(text = "None",    onClick = { due = null })
+                    CompactChip(text = "Every day", onClick = { due = "EVERYDAY" })
+                    CompactChip(text = "Today",   onClick = { due = LocalDate.now().toString() })
+                    CompactChip(text = "Date…",   onClick = { pickDate = true })
+                }
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    when (due) {
+                        null -> "No due date"
+                        "EVERYDAY" -> "Every day"
+                        else -> LocalDate.parse(due)
+                            .format(DateTimeFormatter.ofPattern("dd MMM"))
+                    },
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { if (text.isNotBlank()) onSave(text, due) }
+            ) { Text("Save") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        }
+    )
 }
