@@ -8,6 +8,7 @@ fun AppNav() {
     val nav = rememberNavController()
 
     NavHost(navController = nav, startDestination = "lists") {
+        composable("todos") { TodoScreen(onBack = { nav.popBackStack() }) }
         composable("lists") {
             ListsScreen(nav)
         }

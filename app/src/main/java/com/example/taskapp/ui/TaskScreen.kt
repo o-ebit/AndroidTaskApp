@@ -168,19 +168,12 @@ fun TasksScreen(
                                     .padding(horizontal = 12.dp, vertical = 6.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Checkbox(
-                                    checked = task.done,
-                                    onCheckedChange = { vm.toggle(task) },
-                                    modifier = Modifier.size(20.dp)
-                                )
 
                                 Text(
                                     task.text,
                                     Modifier
                                         .weight(1f)
                                         .padding(start = 12.dp),
-                                    color = if (task.done) Color.Gray else LocalContentColor.current,
-                                    textDecoration = if (task.done) TextDecoration.LineThrough else null
                                 )
 
                                 val dueLabel = when (task.due) {

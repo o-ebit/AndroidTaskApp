@@ -31,9 +31,6 @@ class TasksVm(app: Application, state: SavedStateHandle) : AndroidViewModel(app)
         repo.addTask(listId, text, due)
     }
 
-    fun toggle(task: Task) = viewModelScope.launch {
-        repo.toggle(task)
-    }
     fun delete(task: Task) = viewModelScope.launch { repo.deleteTask(task) }
 
     fun move(from: Int, to: Int) = viewModelScope.launch {

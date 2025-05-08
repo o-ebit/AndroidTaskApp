@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,14 +35,17 @@ fun ListsScreen(
             TopAppBar(
                 title = { Text("Checklists") },
                 actions = {
-                    IconButton(
-                        onClick = {
-                            if (newTitle.isNotBlank()) {
-                                vm.add(newTitle)
-                                newTitle = ""
-                            }
+                    IconButton(onClick = { nav.navigate("todos") }) {
+                        Icon(Icons.Default.List, contentDescription = "To-dos")
+                    }
+                    IconButton(onClick = {
+                        if (newTitle.isNotBlank()) {
+                            vm.add(newTitle)
+                            newTitle = ""
                         }
-                    ) { Icon(Icons.Default.Add, contentDescription = "Add checklist") }
+                    }) {
+                        Icon(Icons.Default.Add, contentDescription = "Add checklist")
+                    }
                 }
             )
         }
