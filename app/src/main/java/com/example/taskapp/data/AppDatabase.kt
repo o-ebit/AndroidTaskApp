@@ -3,8 +3,8 @@ package com.example.taskapp.data
 import androidx.room.Database
 import androidx.room.RoomDatabase
 
-@Database(entities = [Checklist::class, Task::class], version = 5, exportSchema = false)
+@Database(entities = [Category::class, Task::class], version = 7, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun checklistDao(): ChecklistDao
+    abstract fun categoryDao(): CategoryDao
     abstract fun taskDao(): TaskDao
 }

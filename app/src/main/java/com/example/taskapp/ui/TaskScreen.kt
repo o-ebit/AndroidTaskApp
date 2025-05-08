@@ -50,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -60,7 +61,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun TasksScreen(
     listId: Int,
@@ -83,28 +84,69 @@ fun TasksScreen(
     val tasks by vm.tasks.collectAsState()
     val title by vm.title.collectAsState("")
     var showAdd by remember { mutableStateOf(false) }
+    val headerColor by vm.headerColor.collectAsState(0xFFEEEEEE.toLong())
+    var askClear by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(title) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
+            Column {
+                TopAppBar(
+                    title = { Text(title) },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.White
+                    ),
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
+                        }
+                    },
+                    actions = {
+                        IconButton(
+                            onClick = { showAdd = true },
+                            modifier = Modifier
+                                .background(Color(0xFFF0F0F0), shape = MaterialTheme.shapes.small)
+                                .padding(4.dp)
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = "Add", tint = Color.Black)
+                        }
                     }
-                },
-                actions = {
-                    IconButton(onClick = { showAdd = true }) {
-                        Icon(Icons.Default.Add, null)
-                    }
-                }
-            )
+                )
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(4.dp)
+                        .background(Color(headerColor))
+                )
+            }
         }
     ) { pad ->
         Column(
             Modifier
                 .padding(pad)
                 .fillMaxSize()) {
+            val completedExists = tasks.any { it.completedDate != null && it.due != "EVERYDAY" }
+
+            Button(
+                onClick = { askClear = true },
+                enabled = completedExists,
+                modifier = Modifier.align(Alignment.End).padding(end = 16.dp, top = 8.dp)
+            ) { Text("Clear completed") }
+
+            if (askClear) {
+                AlertDialog(
+                    onDismissRequest = { askClear = false },
+                    title = { Text("Remove completed tasks?") },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            vm.clearCompleted()
+                            askClear = false
+                        }) { Text("Delete") }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { askClear = false }) { Text("Cancel") }
+                    }
+                )
+            }
 
             LazyColumn(
                 modifier = Modifier
@@ -157,7 +199,7 @@ fun TasksScreen(
                                         edit = true
                                     }
                                 ),
-                            elevation = CardDefaults.cardElevation(0.dp)
+                            elevation = CardDefaults.cardElevation(if (dismissState.targetValue != SwipeToDismissBoxValue.Settled) 4.dp else 0.dp)
                         ) {
                             Row(
                                 Modifier
@@ -166,11 +208,18 @@ fun TasksScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
 
+                                val today = LocalDate.now().toString()
+                                val doneToday = task.completedDate == today && task.due != "EVERYDAY"
+
                                 Text(
-                                    task.text,
-                                    Modifier
+                                    text = task.text,
+                                    modifier = Modifier
                                         .weight(1f)
                                         .padding(start = 12.dp),
+                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                        color = if (doneToday) Color.Gray else LocalContentColor.current,
+                                        textDecoration = if (doneToday) TextDecoration.LineThrough else null
+                                    )
                                 )
 
                                 val dueLabel = when (task.due) {
@@ -179,12 +228,13 @@ fun TasksScreen(
                                     else -> LocalDate.parse(task.due)
                                         .format(DateTimeFormatter.ofPattern("dd MMM"))
                                 }
-
+                                if (dueLabel.isNotBlank()) {
                                 Text(
                                     dueLabel,
                                     style = MaterialTheme.typography.labelSmall,
                                     modifier = Modifier.padding(end = 8.dp)
-                                )
+                                )}
+
                                 /* ▲ up */
                                 IconButton(
                                     onClick = { if (index > 0) vm.move(index, index - 1) },
@@ -222,7 +272,7 @@ fun TasksScreen(
                     /* ---- Edit dialog ---- */
                     if (edit) {
                         TaskEditDialog(
-                            title = "Edit item",
+                            title = "Edit task",
                             initialText = task.text,
                             initialDue = task.due,
                             onSave = { t, d -> vm.rename(task, t, d); edit = false },
@@ -237,12 +287,13 @@ fun TasksScreen(
                                 ask = false
                                 scope.launch { dismissState.reset() }
                             },
-                            title = { Text("Delete item?") },
+                            title = { Text("Delete task?") },
                             text = { Text(task.text) },
                             confirmButton = {
                                 TextButton(onClick = {
                                     vm.delete(task)
                                     ask = false
+                                    scope.launch { dismissState.reset() } // ← add this
                                 }) { Text("Delete") }
                             },
                             dismissButton = {
@@ -259,7 +310,7 @@ fun TasksScreen(
     }
     if (showAdd) {
         TaskEditDialog(
-            title = "New item",
+            title = "New task",
             initialText = "",
             initialDue = null,
             onSave = { t, d -> vm.add(t, d); showAdd = false },

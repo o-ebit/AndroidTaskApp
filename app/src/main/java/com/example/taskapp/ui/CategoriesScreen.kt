@@ -1,5 +1,6 @@
 package com.example.taskapp.ui
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,7 +18,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,14 +43,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.example.taskapp.data.Checklist
-import com.example.taskapp.viewmodel.ListsVm
+import com.example.taskapp.data.Category
+import com.example.taskapp.viewmodel.CategoriesVm
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ListsScreen(
     nav: NavHostController,
-    vm: ListsVm = viewModel()
+    vm: CategoriesVm = viewModel()
 ) {
     val lists by vm.lists.collectAsState()
     var showAdd by remember { mutableStateOf(false) }
@@ -77,7 +78,7 @@ fun ListsScreen(
                 }
 
                 IconButton(onClick = { showAdd = true }) {
-                    Icon(Icons.Default.Add, contentDescription = "Add checklist")
+                    Icon(Icons.Default.Add, contentDescription = "Add category")
                 }
             }
 
@@ -93,7 +94,7 @@ fun ListsScreen(
                     .weight(1f)
                     .fillMaxWidth()
             ) {
-                items(lists, key = Checklist::id) { list ->
+                items(lists, key = Category::id) { list ->
 
                     var confirmDelete by remember { mutableStateOf(false) }
                     var edit by remember { mutableStateOf(false) }
@@ -153,7 +154,7 @@ fun ListsScreen(
                                 confirmDelete = false
                                 scope.launch { dismissState.reset() }
                             },
-                            title = { Text("Delete checklist?") },
+                            title = { Text("Delete category?") },
                             text = { Text(list.title) },
                             confirmButton = {
                                 TextButton(onClick = {
@@ -174,7 +175,7 @@ fun ListsScreen(
                     if (edit) {
                         AlertDialog(
                             onDismissRequest = { edit = false },
-                            title = { Text("Rename checklist") },
+                            title = { Text("Rename category") },
                             text = {
                                 OutlinedTextField(
                                     value = draft,
@@ -199,7 +200,7 @@ fun ListsScreen(
                 var draft by remember { mutableStateOf("") }
                 AlertDialog(
                     onDismissRequest = { showAdd = false },
-                    title = { Text("New checklist") },
+                    title = { Text("New category") },
                     text = {
                         OutlinedTextField(
                             value = draft,

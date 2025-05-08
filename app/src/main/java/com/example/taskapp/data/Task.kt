@@ -7,7 +7,7 @@ import androidx.room.Index
 
 @Entity(
     foreignKeys = [ForeignKey(
-        entity = Checklist::class,
+        entity = Category::class,
         parentColumns = ["id"],
         childColumns = ["listId"],
         onDelete = ForeignKey.CASCADE
@@ -24,5 +24,6 @@ data class Task(
      *  ISO-8601 date (yyyy-MM-dd) ➜ single due date */
     val due: String? = null,
     /** yyyy-MM-dd when last completed, null = never completed */
-    val completedDate: String? = null
+    val completedDate: String? = null,
+    val todoOrder: Int = 0
 )
