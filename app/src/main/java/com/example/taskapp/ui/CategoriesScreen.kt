@@ -64,6 +64,10 @@ fun ListsScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                IconButton(onClick = { showAdd = true }) {
+                    Icon(Icons.Default.Add, contentDescription = "Add category")
+                }
+
                 TextButton(
                     onClick = { nav.navigate("todos") },
                     colors = ButtonDefaults.buttonColors(
@@ -74,10 +78,6 @@ fun ListsScreen(
                     Text(
                         text = "Today's tasks",
                     )
-                }
-
-                IconButton(onClick = { showAdd = true }) {
-                    Icon(Icons.Default.Add, contentDescription = "Add category")
                 }
             }
 

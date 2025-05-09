@@ -12,10 +12,7 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="95287d2c-9379-4c48-bc6a-ef10af53a523" name="Changes" comment="Fix going forward and backward days on the todo screen">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/ui/TaskScreen.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/ui/TaskScreen.kt" afterDir="false" />
-    </list>
+    <list default="true" id="95287d2c-9379-4c48-bc6a-ef10af53a523" name="Changes" comment="Reordering by dragging on tasks page" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -257,7 +254,15 @@
       <option name="project" value="LOCAL" />
       <updated>1746794702224</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="Reordering by dragging on tasks page">
+      <option name="closed" value="true" />
+      <created>1746795278911</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1746795278911</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -279,6 +284,7 @@
     <MESSAGE value="added date and to-do screen" />
     <MESSAGE value="tidier UI and better sorting" />
     <MESSAGE value="Fix going forward and backward days on the todo screen" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fix going forward and backward days on the todo screen" />
+    <MESSAGE value="Reordering by dragging on tasks page" />
+    <option name="LAST_COMMIT_MESSAGE" value="Reordering by dragging on tasks page" />
   </component>
 </project>
