@@ -44,6 +44,9 @@ class CategoryRepository(private val db: AppDatabase) {
         db.categoryDao().insert(Category(title = title, color = color))
     }
 
+    private suspend fun getMaxPos(categoryId: Int): Int {
+        return db.taskDao().getMaxPos(categoryId) ?: -1
+    }
     suspend fun clearCompleted(listId: Int) =
         db.taskDao().deleteCompleted(listId)
 
@@ -52,9 +55,14 @@ class CategoryRepository(private val db: AppDatabase) {
 
     suspend fun deleteCategory(list: Category) = db.categoryDao().delete(list)
 
-    suspend fun addTask(listId: Int, text: String, due: String?) {
-        val max = db.taskDao().maxPos(listId) ?: -1            // ← add this query
-        db.taskDao().insert(Task(listId = listId, text = text, pos = max + 1, due = due))
+    suspend fun addTask(categoryId: Int, text: String, due: String?) {
+        val task = Task(
+            text = text,
+            due = due,
+            listId = categoryId,
+            pos = getMaxPos(categoryId) + 1
+        )
+        db.taskDao().insert(task)
     }
     suspend fun moveTasks(list: List<Task>) = db.taskDao().updateMany(list)
 
@@ -75,6 +83,8 @@ class CategoryRepository(private val db: AppDatabase) {
             )
         )
 
-    suspend fun renameTask(task: Task, newText: String, newDue: String?) =
-        db.taskDao().update(task.copy(text = newText, due = newDue))
+    suspend fun renameTask(task: Task, newText: String, newDue: String?, newListId: Int) {
+        val updated = task.copy(text = newText, due = newDue, listId = newListId)
+        db.taskDao().update(updated)
+    }
 }

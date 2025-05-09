@@ -27,8 +27,8 @@ class TasksVm(app: Application, state: SavedStateHandle) : AndroidViewModel(app)
         .map { it?.title ?: "" }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
 
-    fun add(text: String, due: String?) = viewModelScope.launch {
-        repo.addTask(listId, text, due)
+    fun add(text: String, due: String?, categoryId: Int) = viewModelScope.launch {
+        repo.addTask(categoryId, text, due)
     }
 
     fun delete(task: Task) = viewModelScope.launch { repo.deleteTask(task) }
@@ -41,9 +41,10 @@ class TasksVm(app: Application, state: SavedStateHandle) : AndroidViewModel(app)
         val reordered = current.mapIndexed { i, t -> t.copy(pos = i) }
         repo.moveTasks(reordered)          // DAO method that does @Update on list
     }
-    fun rename(task: Task, newText: String, newDue: String?) = viewModelScope.launch {
-        repo.renameTask(task, newText, newDue)
+    fun rename(task: Task, newText: String, newDue: String?, newListId: Int) = viewModelScope.launch {
+        repo.renameTask(task, newText, newDue, newListId)
     }
+
     val headerColor: StateFlow<Long> = repo.categoryId(listId)
         .map { it?.color ?: 0xFFEEEEEE }
         .stateIn(viewModelScope, SharingStarted.Lazily, 0xFFEEEEEE)

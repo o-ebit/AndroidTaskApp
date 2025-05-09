@@ -5,6 +5,8 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +24,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Menu
@@ -52,6 +55,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.taskapp.viewmodel.CategoriesVm
 import com.example.taskapp.viewmodel.TodosVm
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.detectReorder
@@ -60,7 +64,9 @@ import org.burnoutcrew.reorderable.reorderable
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class,
+    ExperimentalFoundationApi::class
+)
 @Composable
 fun TodoScreen(
     onBack: () -> Unit,
@@ -69,7 +75,10 @@ fun TodoScreen(
     var dayOffset by remember { mutableStateOf(0) }
     val dateStr = LocalDate.now().plusDays(dayOffset.toLong()).toString()
     val isToday = dayOffset == 0
-
+    val categoriesVm: CategoriesVm = viewModel()
+    val allCategories by categoriesVm.lists.collectAsState()
+    val firstCategory = allCategories.firstOrNull()
+    var showAdd by remember { mutableStateOf(false) }
     /* stream now depends on dateStr */
     val showOutstanding by vm.showOutstanding.collectAsState()
     val items by vm.itemsFor(dateStr).collectAsState(emptyList())
@@ -112,9 +121,7 @@ fun TodoScreen(
                 },
                 actions = {
                     Row(
-                        modifier = Modifier
-                            .padding(end = 8.dp)
-                            .height(40.dp),
+                        modifier = Modifier.padding(end = 8.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Button(
@@ -138,8 +145,11 @@ fun TodoScreen(
                         ) {
                             Text("All")
                         }
+                        IconButton(onClick = { showAdd = true }) {
+                            Icon(Icons.Default.Add, contentDescription = "Add")
+                        }
                     }
-                },
+                }                ,
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color(0xFFEEEEEE),
                     navigationIconContentColor = Color.Black,
@@ -198,6 +208,7 @@ fun TodoScreen(
             ) {
                 items(items, key = { it.task.id }) { row ->
                     val task = row.task
+                    var edit by remember { mutableStateOf(false) }
                     // Mark as done if completed on this date OR any date after this (for past views)
                     val isCompleted = task.completedDate != null &&
                             (task.completedDate == dateStr ||
@@ -216,7 +227,11 @@ fun TodoScreen(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 12.dp, vertical = 4.dp),
+                                    .padding(horizontal = 12.dp, vertical = 4.dp)
+                                    .combinedClickable(
+                                    onClick = {}, // no-op or use for quick mark/done
+                            onLongClick = { edit = true } // <-- open editor
+                            ),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Checkbox(
@@ -269,7 +284,17 @@ fun TodoScreen(
                                         .detectReorder(reorderState)
                                 )
                             }
-
+                            if (edit) {
+                                TaskEditDialog(
+                                    title = "Edit task",
+                                    initialText = task.text,
+                                    initialDue = task.due,
+                                    initialCategory = allCategories.firstOrNull { it.id == row.task.listId } ?: allCategories.first(),
+                                    allCategories = allCategories,
+                                    onSave = { t, d, cId -> vm.rename(row.task, t, d, cId); edit = false },
+                                    onDismiss = { edit = false }
+                                )
+                            }
                             HorizontalDivider(thickness = 0.5.dp)
                         }
                     }
@@ -280,6 +305,20 @@ fun TodoScreen(
                     Spacer(modifier = Modifier.height(80.dp))
                 }
             }
+        }
+        if (showAdd && firstCategory != null) {
+            TaskEditDialog(
+                title = "New task",
+                initialText = "",
+                initialDue = dateStr,
+                initialCategory = firstCategory,
+                allCategories = allCategories,
+                onSave = { text, due, catId ->
+                    vm.add(text, due, catId)
+                    showAdd = false
+                },
+                onDismiss = { showAdd = false }
+            )
         }
     }
 }

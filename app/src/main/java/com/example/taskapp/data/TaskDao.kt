@@ -35,6 +35,9 @@ ORDER BY todoOrder ASC
     @Query("DELETE FROM Task WHERE listId = :id AND completedDate IS NOT NULL AND due != 'EVERYDAY'")
     suspend fun deleteCompleted(id: Int)
 
+    @Query("SELECT MAX(pos) FROM Task WHERE listId = :categoryId")
+    suspend fun getMaxPos(categoryId: Int): Int?
+
     @Update suspend fun updateMany(tasks: List<Task>)
     @Insert suspend fun insert(task: Task)
     @Update suspend fun update(task: Task)

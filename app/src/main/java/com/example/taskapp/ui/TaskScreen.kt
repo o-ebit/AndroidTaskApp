@@ -7,7 +7,6 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,26 +18,20 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -57,6 +50,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.taskapp.data.Category
+import com.example.taskapp.viewmodel.CategoriesVm
 import com.example.taskapp.viewmodel.TasksVm
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -84,7 +79,11 @@ fun TasksScreen(
         }
     }
     val vm: TasksVm = viewModel(factory = factory)
-
+    val categoriesVm: CategoriesVm = viewModel()
+    val allCategories by categoriesVm.lists.collectAsState()
+    if (allCategories.isEmpty()) return
+    val currentCategory: Category = allCategories.firstOrNull { it.id == listId }
+        ?: error("No categories available to default to.")
     /* --- state --- */
     val tasks by vm.tasks.collectAsState()
     val title by vm.title.collectAsState("")
@@ -163,7 +162,7 @@ fun TasksScreen(
                     .reorderable(reorderState)
             ) {
                 itemsIndexed(tasks, key = { _, task -> task.id }) { _, task ->
-                var ask by remember { mutableStateOf(false) }
+                    var ask by remember { mutableStateOf(false) }
                     var edit by remember { mutableStateOf(false) }
                     val scope = rememberCoroutineScope()
 
@@ -262,7 +261,9 @@ fun TasksScreen(
                             title = "Edit task",
                             initialText = task.text,
                             initialDue = task.due,
-                            onSave = { t, d -> vm.rename(task, t, d); edit = false },
+                            initialCategory = currentCategory,
+                            allCategories = allCategories,
+                            onSave = { t, d, cId -> vm.rename(task, t, d, cId); edit = false },
                             onDismiss = { edit = false }
                         )
                     }
@@ -297,10 +298,12 @@ fun TasksScreen(
     }
     if (showAdd) {
         TaskEditDialog(
-            title = "New task",
+            title = "Add task",
             initialText = "",
             initialDue = null,
-            onSave = { t, d -> vm.add(t, d); showAdd = false },
+            initialCategory = currentCategory,
+            allCategories = allCategories,
+            onSave = { t, d, cId -> vm.add(t, d, cId); showAdd = false },
             onDismiss = { showAdd = false }
         )
     }
@@ -328,84 +331,3 @@ fun CompactChip(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun TaskEditDialog(
-    title: String,
-    initialText: String,
-    initialDue: String?,
-    onSave: (String, String?) -> Unit,
-    onDismiss: () -> Unit
-) {
-    var text by remember { mutableStateOf(initialText) }
-    var due by remember { mutableStateOf(initialDue) }
-    var pickDate by remember { mutableStateOf(false) }
-
-    if (pickDate) {
-        val pickerState = rememberDatePickerState()
-        DatePickerDialog(
-            onDismissRequest = { pickDate = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val millis = pickerState.selectedDateMillis
-                        if (millis != null) {
-                            due = LocalDate.ofEpochDay(millis / 86_400_000)
-                                .toString() // formatted as yyyy-MM-dd
-                        }
-                        pickDate = false
-                    }
-                ) { Text("OK") }
-            },
-            dismissButton = {
-                TextButton(onClick = { pickDate = false }) { Text("Cancel") }
-            },
-            content = {
-                DatePicker(state = pickerState)
-            }
-        )
-    }
-
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = {
-            Column {
-                OutlinedTextField(
-                    value = text,
-                    onValueChange = { text = it },
-                    label = { Text("Task") },
-                    singleLine = true
-                )
-                Spacer(Modifier.height(8.dp))
-                Row (modifier = Modifier
-                    .horizontalScroll(rememberScrollState())){
-                    CompactChip(text = "None",    onClick = { due = null })
-                    CompactChip(text = "Today",   onClick = { due = LocalDate.now().toString() })
-                    CompactChip(text = "Tomorrow", onClick = { due = LocalDate.now().plusDays(1).toString() })
-                    CompactChip(text = "Every day", onClick = { due = "EVERYDAY" })
-                    CompactChip(text = "Date…",   onClick = { pickDate = true })
-                }
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    when (due) {
-                        null -> "No due date"
-                        "EVERYDAY" -> "Every day"
-                        else -> LocalDate.parse(due)
-                            .format(DateTimeFormatter.ofPattern("dd MMM"))
-                    },
-                    style = MaterialTheme.typography.labelSmall
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { if (text.isNotBlank()) onSave(text, due) }
-            ) { Text("Save") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
-        }
-    )
-}

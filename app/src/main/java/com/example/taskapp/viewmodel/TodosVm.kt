@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.taskapp.data.CategoryRepository
+import com.example.taskapp.data.Task
 import com.example.taskapp.data.TaskWithList
 import com.example.taskapp.util.db
 import kotlinx.coroutines.flow.*
@@ -41,6 +42,14 @@ class TodosVm(app: Application) : AndroidViewModel(app) {
 
     fun toggleDone(item: TaskWithList, dateStr: String) = viewModelScope.launch {
         repo.toggleToday(item.task, dateStr)
+    }
+
+    fun add(text: String, due: String?, listId: Int) = viewModelScope.launch {
+        repo.addTask(listId, text, due)
+    }
+
+    fun rename(task: Task, newText: String, newDue: String?, newCategoryId: Int) = viewModelScope.launch {
+        repo.renameTask(task, newText, newDue, newCategoryId)
     }
 
     fun itemsFor(dateStr: String): Flow<List<TaskWithList>> {
