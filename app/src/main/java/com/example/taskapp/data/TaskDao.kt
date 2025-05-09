@@ -14,18 +14,21 @@ interface TaskDao {
     @Query("SELECT * FROM Task WHERE listId = :listId ORDER BY pos")
     fun tasks(listId: Int): Flow<List<Task>>
     @Query("SELECT MAX(pos) FROM Task WHERE listId = :id") suspend fun maxPos(id:Int): Int?
-    @Query(
-        """
+    @Query("""
 SELECT Task.*, Category.title AS listTitle, Category.color AS listColor
 FROM Task
 JOIN Category ON Category.id = Task.listId
-WHERE
-  (Task.due = 'EVERYDAY' OR Task.due <= :today)
+WHERE (
+    Task.due = 'EVERYDAY'
+    OR Task.due <= :date
+)
+AND (
+    Task.completedDate IS NULL
+    OR Task.completedDate >= :date
+)
 ORDER BY todoOrder ASC
-"""
-    )
-    fun dueToday(today: String): Flow<List<TaskWithList>>
-
+""")
+    fun todosForDate(date: String): Flow<List<TaskWithList>>
     @Query("SELECT MAX(todoOrder) FROM Task")
     suspend fun maxTodoOrder(): Int?
 

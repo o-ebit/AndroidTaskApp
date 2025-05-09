@@ -1,5 +1,7 @@
 package com.example.taskapp.data
 
+import kotlinx.coroutines.flow.Flow
+
 class CategoryRepository(private val db: AppDatabase) {
     val lists = db.categoryDao().all()
     fun listItems(id: Int) = db.taskDao().tasks(id)
@@ -62,7 +64,9 @@ class CategoryRepository(private val db: AppDatabase) {
     suspend fun renameCategory(list: Category, newTitle: String) =
         db.categoryDao().update(list.copy(title = newTitle))
 
-    fun todosToday(localDate: String) = db.taskDao().dueToday(localDate)
+    fun todosForDate(date: String): Flow<List<TaskWithList>> {
+        return db.taskDao().todosForDate(date)
+    }
 
     suspend fun toggleToday(task: Task, today: String) =
         db.taskDao().update(

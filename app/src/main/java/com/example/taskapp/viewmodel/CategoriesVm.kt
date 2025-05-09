@@ -17,6 +17,5 @@ class CategoriesVm(app: Application) : AndroidViewModel(app) {
     fun delete(list: Category) = viewModelScope.launch { repo.deleteCategory(list) }
     fun rename(list: Category, newTitle: String) = viewModelScope.launch {
         repo.renameCategory(list, newTitle)
-
     }
 }

@@ -392,10 +392,12 @@ private fun TaskEditDialog(
                     singleLine = true
                 )
                 Spacer(Modifier.height(8.dp))
-                Row {
+                Row (modifier = Modifier
+                    .horizontalScroll(rememberScrollState())){
                     CompactChip(text = "None",    onClick = { due = null })
-                    CompactChip(text = "Every day", onClick = { due = "EVERYDAY" })
                     CompactChip(text = "Today",   onClick = { due = LocalDate.now().toString() })
+                    CompactChip(text = "Tomorrow", onClick = { due = LocalDate.now().plusDays(1).toString() })
+                    CompactChip(text = "Every day", onClick = { due = "EVERYDAY" })
                     CompactChip(text = "Date…",   onClick = { pickDate = true })
                 }
                 Spacer(Modifier.height(4.dp))

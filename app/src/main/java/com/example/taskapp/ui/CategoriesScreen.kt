@@ -73,7 +73,6 @@ fun ListsScreen(
                 ) {
                     Text(
                         text = "Today's tasks",
-                        style = MaterialTheme.typography.bodyLarge
                     )
                 }
 
@@ -221,6 +220,19 @@ fun ListsScreen(
                     }
                 )
             }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Text(
+                    text = "v1.0.0",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.Gray
+                )
+            }
+
         }
     }
 }
