@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -60,6 +61,10 @@ import com.example.taskapp.viewmodel.TasksVm
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import org.burnoutcrew.reorderable.rememberReorderableLazyListState
+import org.burnoutcrew.reorderable.ReorderableItem
+import org.burnoutcrew.reorderable.reorderable
+import org.burnoutcrew.reorderable.detectReorder
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -86,7 +91,9 @@ fun TasksScreen(
     var showAdd by remember { mutableStateOf(false) }
     val headerColor by vm.headerColor.collectAsState(0xFFEEEEEE.toLong())
     var askClear by remember { mutableStateOf(false) }
-
+    val reorderState = rememberReorderableLazyListState(
+        onMove = { from, to -> vm.move(from.index, to.index) }
+    )
     Scaffold(
         topBar = {
             Column {
@@ -149,14 +156,14 @@ fun TasksScreen(
             }
 
             LazyColumn(
+                state = reorderState.listState,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
+                    .reorderable(reorderState)
             ) {
-                itemsIndexed(tasks, key = { _, t -> t.id }) { index, task ->
-
-                    /* --- per‑row state --- */
-                    var ask by remember { mutableStateOf(false) }
+                itemsIndexed(tasks, key = { _, task -> task.id }) { _, task ->
+                var ask by remember { mutableStateOf(false) }
                     var edit by remember { mutableStateOf(false) }
                     val scope = rememberCoroutineScope()
 
@@ -169,107 +176,87 @@ fun TasksScreen(
                         }
                     )
 
-                    SwipeToDismissBox(
-                        state = dismissState,
-                        backgroundContent = {
-                            Box(
-                                Modifier
-                                    .fillMaxSize()
-                                    .padding(horizontal = 8.dp, vertical = 2.dp),
-                                contentAlignment = Alignment.CenterEnd
-                            ) {
-                                Icon(
-                                    Icons.Default.Delete,
-                                    contentDescription = null,
-                                    tint = Color.Red,
-                                    modifier = Modifier
-                                        .padding(end = 24.dp)
-                                        .size(24.dp)
-                                )
+                    ReorderableItem(reorderState, key = task.id) { isDragging ->
+                        val elevation = if (isDragging) 4.dp else 0.dp
+
+                        SwipeToDismissBox(
+                            state = dismissState,
+                            backgroundContent = {
+                                Box(
+                                    Modifier
+                                        .fillMaxSize()
+                                        .padding(horizontal = 8.dp, vertical = 2.dp),
+                                    contentAlignment = Alignment.CenterEnd
+                                ) {
+                                    Icon(
+                                        Icons.Default.Delete,
+                                        contentDescription = null,
+                                        tint = Color.Red,
+                                        modifier = Modifier
+                                            .padding(end = 24.dp)
+                                            .size(24.dp)
+                                    )
+                                }
                             }
-                        }
-                    ) {
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp, vertical = 2.dp)
-                                .combinedClickable(
-                                    onClick = {},          // no-op tap
-                                    onLongClick = {
-                                        edit = true
-                                    }
-                                ),
-                            elevation = CardDefaults.cardElevation(if (dismissState.targetValue != SwipeToDismissBoxValue.Settled) 4.dp else 0.dp)
                         ) {
-                            Row(
-                                Modifier
+                            Card(
+                                modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 12.dp, vertical = 6.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                                    .padding(horizontal = 8.dp, vertical = 2.dp)
+                                    .combinedClickable(
+                                        onClick = {},
+                                        onLongClick = { edit = true }
+                                    )
+                                    .detectReorder(reorderState), // <- enable drag handle
+                                elevation = CardDefaults.cardElevation(elevation)
                             ) {
-
-                                val today = LocalDate.now().toString()
-                                val doneToday = task.completedDate == today && task.due != "EVERYDAY"
-
-                                Text(
-                                    text = task.text,
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .padding(start = 12.dp),
-                                    style = MaterialTheme.typography.bodyLarge.copy(
-                                        color = if (doneToday) Color.Gray else LocalContentColor.current,
-                                        textDecoration = if (doneToday) TextDecoration.LineThrough else null
-                                    )
-                                )
-
-                                val dueLabel = when (task.due) {
-                                    null -> ""
-                                    "EVERYDAY" -> "Every day"
-                                    else -> LocalDate.parse(task.due)
-                                        .format(DateTimeFormatter.ofPattern("dd MMM"))
-                                }
-                                if (dueLabel.isNotBlank()) {
-                                Text(
-                                    dueLabel,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    modifier = Modifier.padding(end = 8.dp)
-                                )}
-
-                                /* ▲ up */
-                                IconButton(
-                                    onClick = { if (index > 0) vm.move(index, index - 1) },
-                                    enabled = index > 0,
-                                    modifier = Modifier.size(32.dp)
+                                Row(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(
-                                        Icons.Default.KeyboardArrowUp,
-                                        null,
-                                        Modifier.size(18.dp)
-                                    )
-                                }
+                                    val today = LocalDate.now().toString()
+                                    val doneToday = task.completedDate == today && task.due != "EVERYDAY"
 
-                                /* ▼ down */
-                                IconButton(
-                                    onClick = {
-                                        if (index < tasks.lastIndex) vm.move(
-                                            index,
-                                            index + 1
+                                    Text(
+                                        text = task.text,
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .padding(start = 12.dp),
+                                        style = MaterialTheme.typography.bodyLarge.copy(
+                                            color = if (doneToday) Color.Gray else LocalContentColor.current,
+                                            textDecoration = if (doneToday) TextDecoration.LineThrough else null
                                         )
-                                    },
-                                    enabled = index < tasks.lastIndex,
-                                    modifier = Modifier.size(32.dp)
-                                ) {
+                                    )
+
+                                    val dueLabel = when (task.due) {
+                                        null -> ""
+                                        "EVERYDAY" -> "Every day"
+                                        else -> LocalDate.parse(task.due)
+                                            .format(DateTimeFormatter.ofPattern("dd MMM"))
+                                    }
+
+                                    if (dueLabel.isNotBlank()) {
+                                        Text(
+                                            dueLabel,
+                                            style = MaterialTheme.typography.labelSmall,
+                                            modifier = Modifier.padding(end = 8.dp)
+                                        )
+                                    }
+
                                     Icon(
-                                        Icons.Default.KeyboardArrowDown,
-                                        null,
-                                        Modifier.size(18.dp)
+                                        Icons.Default.Menu,
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .padding(start = 8.dp)
+                                            .detectReorder(reorderState)
                                     )
                                 }
                             }
                         }
                     }
 
-                    /* ---- Edit dialog ---- */
                     if (edit) {
                         TaskEditDialog(
                             title = "Edit task",
@@ -280,7 +267,6 @@ fun TasksScreen(
                         )
                     }
 
-                    /* ---- Y/N dialog after swipe ---- */
                     if (ask) {
                         AlertDialog(
                             onDismissRequest = {
@@ -293,7 +279,7 @@ fun TasksScreen(
                                 TextButton(onClick = {
                                     vm.delete(task)
                                     ask = false
-                                    scope.launch { dismissState.reset() } // ← add this
+                                    scope.launch { dismissState.reset() }
                                 }) { Text("Delete") }
                             },
                             dismissButton = {
@@ -306,6 +292,7 @@ fun TasksScreen(
                     }
                 }
             }
+
         }
     }
     if (showAdd) {
