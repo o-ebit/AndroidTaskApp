@@ -48,6 +48,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,24 +56,26 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.taskapp.data.Recurrence
+import com.example.taskapp.data.recurrenceLabel
 import com.example.taskapp.viewmodel.CategoriesVm
-import com.example.taskapp.viewmodel.TodosVm
+import com.example.taskapp.viewmodel.UnifiedTaskViewModel
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.detectReorder
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class,
+@OptIn(
+    ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class,
     ExperimentalFoundationApi::class
 )
 @Composable
 fun TodoScreen(
     onBack: () -> Unit,
-    vm: TodosVm = viewModel()
+    vm: UnifiedTaskViewModel = viewModel()
 ) {
-    var dayOffset by remember { mutableStateOf(0) }
+    var dayOffset by rememberSaveable { mutableStateOf(0) }
     val dateStr = LocalDate.now().plusDays(dayOffset.toLong()).toString()
     val isToday = dayOffset == 0
     val categoriesVm: CategoriesVm = viewModel()
@@ -81,13 +84,13 @@ fun TodoScreen(
     var showAdd by remember { mutableStateOf(false) }
     /* stream now depends on dateStr */
     val showOutstanding by vm.showOutstanding.collectAsState()
-    val items by vm.itemsFor(dateStr).collectAsState(emptyList())
+    val items by vm.dueOnDate(dateStr).collectAsState(emptyList())
 
     // And add this function to your ViewModel class (TodosVm):
     // Set title color based on whether viewing today or another day
     val titleColor = if (isToday) Color.Black else Color(0xFF1976D2) // Blue for non-today
     val reorderState = rememberReorderableLazyListState(
-        onMove = { from, to -> vm.move(from.index, to.index, dateStr) }
+        onMove = { from, to -> vm.moveInToDo(items.map { it.task }, from.index, to.index) }
     )
     Scaffold(
         topBar = {
@@ -149,7 +152,7 @@ fun TodoScreen(
                             Icon(Icons.Default.Add, contentDescription = "Add")
                         }
                     }
-                }                ,
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color(0xFFEEEEEE),
                     navigationIconContentColor = Color.Black,
@@ -200,125 +203,130 @@ fun TodoScreen(
                 .padding(pad)
         ) {
             // Main content
-            LazyColumn(
-                state = reorderState.listState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .reorderable(reorderState)
-            ) {
-                items(items, key = { it.task.id }) { row ->
-                    val task = row.task
-                    var edit by remember { mutableStateOf(false) }
-                    // Mark as done if completed on this date OR any date after this (for past views)
-                    val isCompleted = task.completedDate != null &&
-                            (task.completedDate == dateStr ||
-                                    (task.completedDate?.compareTo(dateStr) ?: -1) > 0)
+            if (items.isEmpty()) {
+                Text("No tasks today", modifier = Modifier.padding(16.dp))
+            } else {
+                LazyColumn(
+                    state = reorderState.listState,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .reorderable(reorderState)
+                ) {
+                    items(items, key = { it.task.id }) { row ->
+                        val task = row.task
+                        var edit by remember { mutableStateOf(false) }
+                        // Mark as done if completed on this date OR any date after this (for past views)
+                        val isCompleted = task.completedDate != null &&
+                                (task.completedDate == dateStr ||
+                                        (task.completedDate?.compareTo(dateStr) ?: -1) > 0)
 
-                    val dueLabel = when (task.due) {
-                        null -> ""
-                        "EVERYDAY" -> "Every day"
-                        else -> LocalDate.parse(task.due)
-                            .format(DateTimeFormatter.ofPattern("dd MMM"))
-                    }
+                        val dueLabel = recurrenceLabel(task.due, task.recurrence)
 
-                    ReorderableItem(reorderState, key = row.task.id) { isDragging ->
-                        val elevation = if (isDragging) 4.dp else 0.dp
-                        Surface(tonalElevation = elevation) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 12.dp, vertical = 4.dp)
-                                    .combinedClickable(
-                                    onClick = {}, // no-op or use for quick mark/done
-                            onLongClick = { edit = true } // <-- open editor
-                            ),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Checkbox(
-                                    checked = isCompleted,
-                                    onCheckedChange = { vm.toggleDone(row, dateStr) },
-                                    modifier = Modifier.size(20.dp)
-                                )
-
-                                Text(
-                                    text = task.text,
+                        ReorderableItem(reorderState, key = row.task.id) { isDragging ->
+                            val elevation = if (isDragging) 4.dp else 0.dp
+                            Surface(tonalElevation = elevation) {
+                                Row(
                                     modifier = Modifier
-                                        .weight(1f)
-                                        .padding(start = 12.dp),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = if (isCompleted) Color.Gray else LocalContentColor.current,
-                                    textDecoration = if (isCompleted) TextDecoration.LineThrough else null
-                                )
-
-                                Surface(
-                                    color = Color(row.listColor),
-                                    shape = RoundedCornerShape(8.dp),
-                                    modifier = Modifier.padding(start = 4.dp)
-                                ) {
-                                    Text(
-                                        row.listTitle,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        modifier = Modifier.padding(
-                                            horizontal = 6.dp,
-                                            vertical = 2.dp
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 12.dp, vertical = 4.dp)
+                                        .combinedClickable(
+                                            onClick = {}, // no-op or use for quick mark/done
+                                            onLongClick = { edit = true } // <-- open editor
                                         ),
-                                        color = Color.White
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Checkbox(
+                                        checked = isCompleted,
+                                        onCheckedChange = { vm.toggleDone(row, dateStr) },
+                                        modifier = Modifier.size(20.dp)
                                     )
-                                }
 
-                                Spacer(modifier = Modifier.width(8.dp))
-
-                                if (dueLabel.isNotBlank()) {
                                     Text(
-                                        text = dueLabel,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = if (isCompleted) Color.Gray else LocalContentColor.current
+                                        text = task.text,
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .padding(start = 12.dp),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = if (isCompleted) Color.Gray else LocalContentColor.current,
+                                        textDecoration = if (isCompleted) TextDecoration.LineThrough else null
+                                    )
+
+                                    Surface(
+                                        color = Color(row.listColor),
+                                        shape = RoundedCornerShape(8.dp),
+                                        modifier = Modifier.padding(start = 4.dp)
+                                    ) {
+                                        Text(
+                                            row.listTitle,
+                                            style = MaterialTheme.typography.labelSmall,
+                                            modifier = Modifier.padding(
+                                                horizontal = 6.dp,
+                                                vertical = 2.dp
+                                            ),
+                                            color = Color.White
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.width(8.dp))
+
+                                    if (dueLabel.isNotBlank()) {
+                                        Text(
+                                            text = dueLabel,
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = if (isCompleted) Color.Gray else LocalContentColor.current
+                                        )
+                                    }
+
+                                    Icon(
+                                        Icons.Default.Menu,
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .padding(start = 8.dp)
+                                            .detectReorder(reorderState)
                                     )
                                 }
-
-                                Icon(
-                                    Icons.Default.Menu,
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .padding(start = 8.dp)
-                                        .detectReorder(reorderState)
-                                )
+                                if (edit) {
+                                    TaskEditDialog(
+                                        title = "Edit task",
+                                        initialText = task.text,
+                                        initialDue = task.due,
+                                        initialRecurrence = task.recurrence,
+                                        initialCategory = allCategories.firstOrNull { it.id == row.task.listId }
+                                            ?: allCategories.first(),
+                                        allCategories = allCategories,
+                                        onSave = { t, d, rec, cId ->
+                                            vm.rename(row.task, t, d, rec, cId)
+                                            edit = false
+                                        },
+                                        onDismiss = { edit = false }
+                                    )
+                                }
+                                HorizontalDivider(thickness = 0.5.dp)
                             }
-                            if (edit) {
-                                TaskEditDialog(
-                                    title = "Edit task",
-                                    initialText = task.text,
-                                    initialDue = task.due,
-                                    initialCategory = allCategories.firstOrNull { it.id == row.task.listId } ?: allCategories.first(),
-                                    allCategories = allCategories,
-                                    onSave = { t, d, cId -> vm.rename(row.task, t, d, cId); edit = false },
-                                    onDismiss = { edit = false }
-                                )
-                            }
-                            HorizontalDivider(thickness = 0.5.dp)
                         }
                     }
-                }
 
-                // Add a spacer at the end for better visual padding
-                item {
-                    Spacer(modifier = Modifier.height(80.dp))
+                    // Add a spacer at the end for better visual padding
+                    item {
+                        Spacer(modifier = Modifier.height(80.dp))
+                    }
                 }
             }
-        }
-        if (showAdd && firstCategory != null) {
-            TaskEditDialog(
-                title = "New task",
-                initialText = "",
-                initialDue = dateStr,
-                initialCategory = firstCategory,
-                allCategories = allCategories,
-                onSave = { text, due, catId ->
-                    vm.add(text, due, catId)
-                    showAdd = false
-                },
-                onDismiss = { showAdd = false }
-            )
+            if (showAdd && firstCategory != null) {
+                TaskEditDialog(
+                    title = "New task",
+                    initialText = "",
+                    initialDue = dateStr,
+                    initialRecurrence = Recurrence.NONE,
+                    initialCategory = firstCategory,
+                    allCategories = allCategories,
+                    onSave = { text, due, rec, catId ->
+                        vm.add(text, due, rec, catId)
+                        showAdd = false
+                    },
+                    onDismiss = { showAdd = false }
+                )
+            }
         }
     }
 }

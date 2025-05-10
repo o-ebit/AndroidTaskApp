@@ -64,8 +64,16 @@ fun ListsScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { showAdd = true }) {
-                    Icon(Icons.Default.Add, contentDescription = "Add category")
+                TextButton(
+                    onClick ={ showAdd = true },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFEEEEEE),
+                        contentColor = Color.Black
+                    )
+                ) {
+                    Text(
+                        text = "Add category",
+                    )
                 }
 
                 TextButton(
@@ -227,7 +235,7 @@ fun ListsScreen(
                 contentAlignment = Alignment.CenterEnd
             ) {
                 Text(
-                    text = "v1.0.0",
+                    text = "v1.0.1",
                     style = MaterialTheme.typography.labelSmall,
                     color = Color.Gray
                 )

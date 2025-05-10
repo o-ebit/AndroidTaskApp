@@ -8,3 +8,5 @@ data class TaskWithList(
     @ColumnInfo(name = "listTitle") val listTitle: String,
     @ColumnInfo(name = "listColor") val listColor: Long
 )
+
+fun TaskWithList.toTask(): Task = this.task

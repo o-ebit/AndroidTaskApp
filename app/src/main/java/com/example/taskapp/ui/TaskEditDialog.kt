@@ -1,11 +1,16 @@
 // TaskEditDialog.kt
 package com.example.taskapp.ui
-
+import androidx.compose.foundation.background
+import com.example.taskapp.data.Recurrence
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -16,6 +21,7 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -30,6 +36,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.taskapp.data.Category
+import com.example.taskapp.data.displayName
+import com.example.taskapp.data.recurrenceLabel
+import com.example.taskapp.data.recurrenceNextDue
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -39,30 +48,29 @@ fun TaskEditDialog(
     title: String,
     initialText: String,
     initialDue: String? = null,
+    initialRecurrence: Recurrence = Recurrence.NONE,
     initialCategory: Category,
     allCategories: List<Category>,
-    onSave: (String, String?, Int) -> Unit,
+    onSave: (String, String?, Recurrence, Int) -> Unit,
     onDismiss: () -> Unit
 ) {
     var text by remember { mutableStateOf(initialText) }
     var due by remember { mutableStateOf(initialDue) }
-    var pickDate by remember { mutableStateOf(false) }
+    var recurrence by remember { mutableStateOf(initialRecurrence) }
     var selectedCategory by remember { mutableStateOf(initialCategory) }
+    var pickDate by remember { mutableStateOf(false) }
 
     if (pickDate) {
         val pickerState = rememberDatePickerState()
         DatePickerDialog(
             onDismissRequest = { pickDate = false },
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        val millis = pickerState.selectedDateMillis
-                        if (millis != null) {
-                            due = LocalDate.ofEpochDay(millis / 86_400_000).toString()
-                        }
-                        pickDate = false
+                TextButton(onClick = {
+                    pickerState.selectedDateMillis?.let {
+                        due = LocalDate.ofEpochDay(it / 86_400_000).toString()
                     }
-                ) { Text("OK") }
+                    pickDate = false
+                }) { Text("OK") }
             },
             dismissButton = {
                 TextButton(onClick = { pickDate = false }) { Text("Cancel") }
@@ -71,25 +79,61 @@ fun TaskEditDialog(
         )
     }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = {
-            Column {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.4f))
+            .clickable(onClick = onDismiss)
+    ) {
+        Surface(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(30.dp)
+                .clickable(enabled = false) {}, // prevent dismissal on inner clicks
+            shape = MaterialTheme.shapes.medium,
+            tonalElevation = 6.dp
+        ) {
+            Column(modifier = Modifier.padding(20.dp)) {
                 OutlinedTextField(
                     value = text,
                     onValueChange = { text = it },
-                    label = { Text("Task") },
-                    singleLine = true
+                    label = { Text("Task text") },
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
                 )
-                Spacer(Modifier.height(8.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        recurrenceLabel(due, recurrence),
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                    Text(
+                        ", in category: " + selectedCategory.title,
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                }
+
+                Spacer(Modifier.height(18.dp))
                 Row(Modifier.horizontalScroll(rememberScrollState())) {
-                    CompactChip("None") { due = null }
-                    CompactChip("Today") { due = LocalDate.now().toString() }
-                    CompactChip("Tomorrow") { due = LocalDate.now().plusDays(1).toString() }
-                    CompactChip("Every day") { due = "EVERYDAY" }
+                    CompactChip("None") { due = null; recurrence = Recurrence.NONE }
+                    CompactChip("Today") { due = LocalDate.now().toString(); recurrence = Recurrence.NONE }
+                    CompactChip("Tomorrow") { due = LocalDate.now().plusDays(1).toString(); recurrence = Recurrence.NONE }
                     CompactChip("Date…") { pickDate = true }
                 }
+
+                Spacer(Modifier.height(8.dp))
+                Row(Modifier.horizontalScroll(rememberScrollState())) {
+                    Recurrence.entries.filter { it != Recurrence.NONE }.forEach { rec ->
+                        CompactChip(rec.displayName()) {
+                            recurrence = rec
+                            due = rec.recurrenceNextDue()?.toString()
+                        }
+                    }
+                }
+
                 Spacer(Modifier.height(8.dp))
                 Row(Modifier.horizontalScroll(rememberScrollState())) {
                     allCategories.forEach { cat ->
@@ -110,45 +154,23 @@ fun TaskEditDialog(
                         }
                     }
                 }
-                Spacer(Modifier.height(12.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = when (due) {
-                            null -> "No due date"
-                            "EVERYDAY" -> "Every day"
-                            else -> LocalDate.parse(due)
-                                .format(DateTimeFormatter.ofPattern("dd MMM"))
-                        },
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                    Spacer(Modifier.width(12.dp))
-                    Surface(
-                        color = Color(selectedCategory.color),
-                        shape = MaterialTheme.shapes.small
-                    ) {
-                        Text(
-                            selectedCategory.title,
-                            style = MaterialTheme.typography.labelSmall,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            color = Color.White
-                        )
-                    }
+
+                Row(
+                    Modifier.align(Alignment.End),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    TextButton(onClick = onDismiss) { Text("Cancel") }
+                    TextButton(
+                        onClick = {
+                            if (text.isNotBlank())
+                                onSave(text, due, recurrence, selectedCategory.id)
+                        }
+                    ) { Text("Save") }
                 }
             }
-
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { if (text.isNotBlank()) onSave(text, due, selectedCategory.id) }
-            ) { Text("Save") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
         }
-    )
+    }
 }
-
-data class CategoryUiModel(val id: Int, val title: String, val color: Long)
 
 @Composable
 fun CompactChip(text: String, onClick: () -> Unit) {

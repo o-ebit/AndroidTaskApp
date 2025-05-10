@@ -1,6 +1,9 @@
 package com.example.taskapp.data
 
 import kotlinx.coroutines.flow.Flow
+import java.time.LocalDate
+
+import android.util.Log
 
 class CategoryRepository(private val db: AppDatabase) {
     val lists = db.categoryDao().all()
@@ -55,36 +58,70 @@ class CategoryRepository(private val db: AppDatabase) {
 
     suspend fun deleteCategory(list: Category) = db.categoryDao().delete(list)
 
-    suspend fun addTask(categoryId: Int, text: String, due: String?) {
+    suspend fun addTask(categoryId: Int, text: String, due: String?, rec: Recurrence = Recurrence.NONE) {
         val task = Task(
             text = text,
             due = due,
             listId = categoryId,
-            pos = getMaxPos(categoryId) + 1
+            pos = getMaxPos(categoryId) + 1,
+            recurrence = rec
         )
+        Log.d("TaskAdd", "Inserting task: $task")
         db.taskDao().insert(task)
     }
     suspend fun moveTasks(list: List<Task>) = db.taskDao().updateMany(list)
 
-    suspend fun deleteTask(task: Task) = db.taskDao().delete(task)
+    suspend fun deleteTask(task: Task) {
+        Log.d("TaskAdd", "Deleting task: $task")
+        db.taskDao().delete(task)
+    }
+
     fun categoryId(id: Int) = db.categoryDao().get(id)
 
     suspend fun renameCategory(list: Category, newTitle: String) =
         db.categoryDao().update(list.copy(title = newTitle))
 
-    fun todosForDate(date: String): Flow<List<TaskWithList>> {
-        return db.taskDao().todosForDate(date)
+    fun dueOnDate(date: String): Flow<List<TaskWithList>> {
+        return db.taskDao().dueOnDate(date)
     }
 
-    suspend fun toggleToday(task: Task, today: String) =
-        db.taskDao().update(
-            task.copy(
-                completedDate = if (task.completedDate == today) null else today
-            )
-        )
+    suspend fun toggleToday(task:Task, today:String) {
+        val nowDone = task.completedDate == null
+        val newCompleted = if (nowDone) today else null
+        db.taskDao().update(task.copy(completedDate = newCompleted))
 
-    suspend fun renameTask(task: Task, newText: String, newDue: String?, newListId: Int) {
-        val updated = task.copy(text = newText, due = newDue, listId = newListId)
+        if (task.recurrence != Recurrence.NONE) {
+            val baseDate = task.due?.let { LocalDate.parse(it) } ?: LocalDate.now()
+            val nextDate = task.recurrence.recurrenceNextDate(baseDate)?.toString()
+            if (nowDone) {
+                if (nextDate != null) {
+                    // create next task only if nextDate is valid
+                    addTask(task.listId, task.text, nextDate, task.recurrence)
+                }
+            } else {
+                if (nextDate != null) {
+                    db.taskDao().deleteNextInstance(
+                        task.listId, task.text, task.recurrence, nextDate
+                    )
+                }
+            }
+        }
+    }
+    suspend fun updateTask(
+        task: Task,
+        newText: String,
+        newDue: String?,
+        newRec: Recurrence,
+        newListId: Int,
+    ) {
+        val updated = task.copy(
+            text = newText,
+            due = newDue,
+            listId = newListId,
+            recurrence = newRec
+        )
+        Log.d("TaskAdd", "Updating task: $task")
         db.taskDao().update(updated)
     }
+
 }

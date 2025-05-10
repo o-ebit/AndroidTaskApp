@@ -52,7 +52,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.taskapp.data.Category
 import com.example.taskapp.viewmodel.CategoriesVm
-import com.example.taskapp.viewmodel.TasksVm
+import com.example.taskapp.viewmodel.UnifiedTaskViewModel
+import com.example.taskapp.data.Recurrence
+import com.example.taskapp.data.recurrenceLabel
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -74,24 +76,26 @@ fun TasksScreen(
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 val handle = SavedStateHandle(mapOf("listId" to listId))
-                return TasksVm(app, handle) as T
+                return UnifiedTaskViewModel(app, handle) as T
             }
         }
     }
-    val vm: TasksVm = viewModel(factory = factory)
+    val vm: UnifiedTaskViewModel = viewModel(factory = factory)
     val categoriesVm: CategoriesVm = viewModel()
     val allCategories by categoriesVm.lists.collectAsState()
     if (allCategories.isEmpty()) return
     val currentCategory: Category = allCategories.firstOrNull { it.id == listId }
         ?: error("No categories available to default to.")
     /* --- state --- */
-    val tasks by vm.tasks.collectAsState()
+    val tasks by vm.tasksForList.collectAsState()
     val title by vm.title.collectAsState("")
     var showAdd by remember { mutableStateOf(false) }
     val headerColor by vm.headerColor.collectAsState(0xFFEEEEEE.toLong())
     var askClear by remember { mutableStateOf(false) }
     val reorderState = rememberReorderableLazyListState(
-        onMove = { from, to -> vm.move(from.index, to.index) }
+        onMove = { from, to -> vm.moveInList(tasks, from.index, to.index)}
+
+
     )
     Scaffold(
         topBar = {
@@ -130,7 +134,7 @@ fun TasksScreen(
             Modifier
                 .padding(pad)
                 .fillMaxSize()) {
-            val completedExists = tasks.any { it.completedDate != null && it.due != "EVERYDAY" }
+            val completedExists = tasks.any { it.completedDate != null && it.recurrence == Recurrence.NONE }
 
             Button(
                 onClick = { askClear = true },
@@ -144,7 +148,7 @@ fun TasksScreen(
                     title = { Text("Remove completed tasks?") },
                     confirmButton = {
                         TextButton(onClick = {
-                            vm.clearCompleted()
+                            vm.clearCompleted(listId)
                             askClear = false
                         }) { Text("Delete") }
                     },
@@ -196,8 +200,10 @@ fun TasksScreen(
                                             .size(24.dp)
                                     )
                                 }
-                            }
+                            },
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
                         ) {
+                            val canDrag = dismissState.currentValue == SwipeToDismissBoxValue.Settled
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -205,8 +211,7 @@ fun TasksScreen(
                                     .combinedClickable(
                                         onClick = {},
                                         onLongClick = { edit = true }
-                                    )
-                                    .detectReorder(reorderState), // <- enable drag handle
+                                    ),
                                 elevation = CardDefaults.cardElevation(elevation)
                             ) {
                                 Row(
@@ -216,7 +221,7 @@ fun TasksScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     val today = LocalDate.now().toString()
-                                    val doneToday = task.completedDate == today && task.due != "EVERYDAY"
+                                    val doneToday = task.completedDate != null && task.completedDate >= today
 
                                     Text(
                                         text = task.text,
@@ -229,12 +234,7 @@ fun TasksScreen(
                                         )
                                     )
 
-                                    val dueLabel = when (task.due) {
-                                        null -> ""
-                                        "EVERYDAY" -> "Every day"
-                                        else -> LocalDate.parse(task.due)
-                                            .format(DateTimeFormatter.ofPattern("dd MMM"))
-                                    }
+                                    val dueLabel = recurrenceLabel(task.due, task.recurrence)
 
                                     if (dueLabel.isNotBlank()) {
                                         Text(
@@ -261,9 +261,13 @@ fun TasksScreen(
                             title = "Edit task",
                             initialText = task.text,
                             initialDue = task.due,
+                            initialRecurrence = task.recurrence,
                             initialCategory = currentCategory,
                             allCategories = allCategories,
-                            onSave = { t, d, cId -> vm.rename(task, t, d, cId); edit = false },
+                            onSave = { t, d, rec, cId ->
+                                vm.rename(task, t, d, rec, cId)
+                                edit = false
+                            },
                             onDismiss = { edit = false }
                         )
                     }
@@ -301,33 +305,14 @@ fun TasksScreen(
             title = "Add task",
             initialText = "",
             initialDue = null,
+            initialRecurrence = Recurrence.NONE,
             initialCategory = currentCategory,
             allCategories = allCategories,
-            onSave = { t, d, cId -> vm.add(t, d, cId); showAdd = false },
+            onSave = { text, due, rec, catId ->
+                vm.add(text, due, rec, catId)
+                showAdd = false
+            },
             onDismiss = { showAdd = false }
         )
     }
 }
-
-@Composable
-fun CompactChip(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Surface(
-        shape = MaterialTheme.shapes.small,
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        tonalElevation = 1.dp,
-        modifier = modifier
-            .padding(end = 4.dp)
-            .clickable(onClick = onClick)
-    ) {
-        Text(
-            text,
-            style = MaterialTheme.typography.labelSmall,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-        )
-    }
-}
-
