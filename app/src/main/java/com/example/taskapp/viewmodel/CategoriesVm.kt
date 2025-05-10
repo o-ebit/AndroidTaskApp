@@ -3,11 +3,11 @@ package com.example.taskapp.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.launch
 import com.example.taskapp.data.Category
 import com.example.taskapp.data.CategoryRepository
 import com.example.taskapp.util.asStateFlow
 import com.example.taskapp.util.db
+import kotlinx.coroutines.launch
 
 class CategoriesVm(app: Application) : AndroidViewModel(app) {
     private val repo = CategoryRepository(app.db)

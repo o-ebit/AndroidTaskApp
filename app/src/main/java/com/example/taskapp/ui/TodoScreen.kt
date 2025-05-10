@@ -1,7 +1,6 @@
 package com.example.taskapp.ui
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
@@ -67,8 +66,7 @@ import org.burnoutcrew.reorderable.reorderable
 import java.time.LocalDate
 
 @OptIn(
-    ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class,
-    ExperimentalFoundationApi::class
+    ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class
 )
 @Composable
 fun TodoScreen(
@@ -218,7 +216,7 @@ fun TodoScreen(
                         // Mark as done if completed on this date OR any date after this (for past views)
                         val isCompleted = task.completedDate != null &&
                                 (task.completedDate == dateStr ||
-                                        (task.completedDate?.compareTo(dateStr) ?: -1) > 0)
+                                        task.completedDate > dateStr)
 
                         val dueLabel = recurrenceLabel(task.due, task.recurrence)
 

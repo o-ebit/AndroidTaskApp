@@ -1,15 +1,14 @@
 package com.example.taskapp.data
 
+import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
-
-import android.util.Log
 
 class CategoryRepository(private val db: AppDatabase) {
     val lists = db.categoryDao().all()
     fun listItems(id: Int) = db.taskDao().tasks(id)
 
-    val PALETTE = listOf(
+    private val palette = listOf(
         0xFFF44336, // Red
         0xFFE91E63, // Pink
         0xFF9C27B0, // Purple
@@ -43,13 +42,14 @@ class CategoryRepository(private val db: AppDatabase) {
     )
 
     suspend fun addCategory(title: String) {
-        val color = PALETTE.random()   // simple auto-assign
+        val color = palette.random()   // simple auto-assign
         db.categoryDao().insert(Category(title = title, color = color))
     }
 
     private suspend fun getMaxPos(categoryId: Int): Int {
         return db.taskDao().getMaxPos(categoryId) ?: -1
     }
+
     suspend fun clearCompleted(listId: Int) =
         db.taskDao().deleteCompleted(listId)
 
@@ -58,7 +58,12 @@ class CategoryRepository(private val db: AppDatabase) {
 
     suspend fun deleteCategory(list: Category) = db.categoryDao().delete(list)
 
-    suspend fun addTask(categoryId: Int, text: String, due: String?, rec: Recurrence = Recurrence.NONE) {
+    suspend fun addTask(
+        categoryId: Int,
+        text: String,
+        due: String?,
+        rec: Recurrence = Recurrence.NONE
+    ) {
         val task = Task(
             text = text,
             due = due,
@@ -69,6 +74,7 @@ class CategoryRepository(private val db: AppDatabase) {
         Log.d("TaskAdd", "Inserting task: $task")
         db.taskDao().insert(task)
     }
+
     suspend fun moveTasks(list: List<Task>) = db.taskDao().updateMany(list)
 
     suspend fun deleteTask(task: Task) {
@@ -85,7 +91,7 @@ class CategoryRepository(private val db: AppDatabase) {
         return db.taskDao().dueOnDate(date)
     }
 
-    suspend fun toggleToday(task:Task, today:String) {
+    suspend fun toggleToday(task: Task, today: String) {
         val nowDone = task.completedDate == null
         val newCompleted = if (nowDone) today else null
         db.taskDao().update(task.copy(completedDate = newCompleted))
@@ -107,6 +113,7 @@ class CategoryRepository(private val db: AppDatabase) {
             }
         }
     }
+
     suspend fun updateTask(
         task: Task,
         newText: String,

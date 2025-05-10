@@ -1,12 +1,14 @@
 package com.example.taskapp.data
-import android.util.Log
+
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 
-enum class Recurrence { NONE, EVERY_DAY, WEEKLY_MON, WEEKLY_TUE, WEEKLY_WED,
-    WEEKLY_THU, WEEKLY_FRI, WEEKLY_SAT, WEEKLY_SUN }
+enum class Recurrence {
+    NONE, EVERY_DAY, WEEKLY_MON, WEEKLY_TUE, WEEKLY_WED,
+    WEEKLY_THU, WEEKLY_FRI, WEEKLY_SAT, WEEKLY_SUN
+}
 
 fun LocalDate.next(targetDay: DayOfWeek): LocalDate {
     val currentDow = this.dayOfWeek
