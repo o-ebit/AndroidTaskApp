@@ -42,7 +42,6 @@ import java.time.LocalDate
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskEditDialog(
-    title: String,
     initialText: String,
     initialDue: String? = null,
     initialRecurrence: Recurrence = Recurrence.NONE,
@@ -59,21 +58,16 @@ fun TaskEditDialog(
 
     if (pickDate) {
         val pickerState = rememberDatePickerState()
-        DatePickerDialog(
-            onDismissRequest = { pickDate = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    pickerState.selectedDateMillis?.let {
-                        due = LocalDate.ofEpochDay(it / 86_400_000).toString()
-                    }
-                    pickDate = false
-                }) { Text("OK") }
-            },
-            dismissButton = {
-                TextButton(onClick = { pickDate = false }) { Text("Cancel") }
-            },
-            content = { DatePicker(state = pickerState) }
-        )
+        DatePickerDialog(onDismissRequest = { pickDate = false }, confirmButton = {
+            TextButton(onClick = {
+                pickerState.selectedDateMillis?.let {
+                    due = LocalDate.ofEpochDay(it / 86_400_000).toString()
+                }
+                pickDate = false
+            }) { Text("OK") }
+        }, dismissButton = {
+            TextButton(onClick = { pickDate = false }) { Text("Cancel") }
+        }, content = { DatePicker(state = pickerState) })
     }
 
     Box(
@@ -82,91 +76,98 @@ fun TaskEditDialog(
             .background(Color.Black.copy(alpha = 0.4f))
             .clickable(onClick = onDismiss)
     ) {
-        Surface(
+        Column(
             modifier = Modifier
-                .align(Alignment.Center)
-                .padding(30.dp)
-                .clickable(enabled = false) {}, // prevent dismissal on inner clicks
-            shape = MaterialTheme.shapes.medium,
-            tonalElevation = 6.dp
+                .fillMaxSize()
+                .padding(top = 60.dp), // Push the content down slightly from the top
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(modifier = Modifier.padding(20.dp)) {
-                OutlinedTextField(
-                    value = text,
-                    onValueChange = { text = it },
-                    label = { Text("Task text") },
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-                )
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        recurrenceLabel(due, recurrence),
-                        style = MaterialTheme.typography.labelSmall
+            Surface(
+                modifier = Modifier
+                    .clickable(enabled = false) {}, // prevent dismissal on inner clicks
+                shape = MaterialTheme.shapes.medium, tonalElevation = 6.dp
+            ) {
+                Column(modifier = Modifier.padding(20.dp)) {
+                    OutlinedTextField(
+                        value = text,
+                        onValueChange = { text = it },
+                        label = { Text("Task text") },
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
                     )
-                    Text(
-                        ", in category: " + selectedCategory.title,
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                }
 
-                Spacer(Modifier.height(18.dp))
-                Row(Modifier.horizontalScroll(rememberScrollState())) {
-                    CompactChip("None") { due = null; recurrence = Recurrence.NONE }
-                    CompactChip("Today") {
-                        due = LocalDate.now().toString(); recurrence = Recurrence.NONE
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            recurrenceLabel(due, recurrence),
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                        Text(
+                            ", in category: " + selectedCategory.title,
+                            style = MaterialTheme.typography.labelSmall,
+                        )
                     }
-                    CompactChip("Tomorrow") {
-                        due = LocalDate.now().plusDays(1).toString(); recurrence = Recurrence.NONE
-                    }
-                    CompactChip("Date…") { pickDate = true }
-                }
 
-                Spacer(Modifier.height(8.dp))
-                Row(Modifier.horizontalScroll(rememberScrollState())) {
-                    Recurrence.entries.filter { it != Recurrence.NONE }.forEach { rec ->
-                        CompactChip(rec.displayName()) {
-                            recurrence = rec
-                            due = rec.recurrenceNextDue()?.toString()
+                    Spacer(Modifier.height(18.dp))
+                    Row(Modifier.horizontalScroll(rememberScrollState())) {
+                        CompactChip("None") { due = null; recurrence = Recurrence.NONE }
+                        CompactChip("Today") {
+                            due = LocalDate.now().toString(); recurrence = Recurrence.NONE
+                        }
+                        CompactChip("Tomorrow") {
+                            due = LocalDate.now().plusDays(1).toString(); recurrence =
+                            Recurrence.NONE
+                        }
+                        CompactChip("Date…") { pickDate = true }
+                    }
+
+                    Spacer(Modifier.height(8.dp))
+                    Row(Modifier.horizontalScroll(rememberScrollState())) {
+                        Recurrence.entries.filter { it != Recurrence.NONE }.forEach { rec ->
+                            CompactChip(rec.displayName()) {
+                                recurrence = rec
+                                due = rec.recurrenceNextDue()?.toString()
+                            }
                         }
                     }
-                }
 
-                Spacer(Modifier.height(8.dp))
-                Row(Modifier.horizontalScroll(rememberScrollState())) {
-                    allCategories.forEach { cat ->
-                        Surface(
-                            color = Color(cat.color),
-                            shape = MaterialTheme.shapes.small,
-                            tonalElevation = if (cat == selectedCategory) 4.dp else 1.dp,
-                            modifier = Modifier
-                                .padding(end = 4.dp)
-                                .clickable { selectedCategory = cat }
-                        ) {
-                            Text(
-                                cat.title,
-                                style = MaterialTheme.typography.labelSmall,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                color = Color.White
+                    Spacer(Modifier.height(8.dp))
+                    Row(Modifier.horizontalScroll(rememberScrollState())) {
+                        allCategories.forEach { cat ->
+                            Surface(color = Color(cat.color),
+                                shape = MaterialTheme.shapes.small,
+                                tonalElevation = if (cat == selectedCategory) 4.dp else 1.dp,
+                                modifier = Modifier
+                                    .padding(end = 4.dp)
+                                    .clickable { selectedCategory = cat }) {
+                                Text(
+                                    cat.title,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    color = Color.White
+                                )
+                            }
+                        }
+                    }
+
+                    Row(
+                        Modifier.align(Alignment.End),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        TextButton(onClick = onDismiss) { Text("Cancel") }
+                        TextButton(onClick = {
+                            if (text.isNotBlank()) onSave(
+                                text,
+                                due,
+                                recurrence,
+                                selectedCategory.id
                             )
-                        }
+                        }) { Text("Save") }
                     }
-                }
-
-                Row(
-                    Modifier.align(Alignment.End),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    TextButton(onClick = onDismiss) { Text("Cancel") }
-                    TextButton(
-                        onClick = {
-                            if (text.isNotBlank())
-                                onSave(text, due, recurrence, selectedCategory.id)
-                        }
-                    ) { Text("Save") }
                 }
             }
         }

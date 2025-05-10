@@ -15,9 +15,9 @@ interface CategoryDao {
     @Query("SELECT * FROM Category WHERE id = :id LIMIT 1")
     fun get(id: Int): Flow<Category?>
     @Insert
-    suspend fun insert(list: Category)
+    suspend fun insert(category: Category)
     @Delete
-    suspend fun delete(list: Category)
+    suspend fun delete(category: Category)
     @Update
-    suspend fun update(list: Category)
+    suspend fun update(category: Category)
 }

@@ -47,11 +47,11 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ListsScreen(
+fun CategoriesScreen(
     nav: NavHostController,
     vm: CategoriesVm = viewModel()
 ) {
-    val lists by vm.lists.collectAsState()
+    val categories by vm.categories.collectAsState()
     var showAdd by remember { mutableStateOf(false) }
     Scaffold(
         topBar = {
@@ -99,11 +99,11 @@ fun ListsScreen(
                     .weight(1f)
                     .fillMaxWidth()
             ) {
-                items(lists, key = Category::id) { list ->
+                items(categories, key = Category::id) { category ->
 
                     var confirmDelete by remember { mutableStateOf(false) }
                     var edit by remember { mutableStateOf(false) }
-                    var draft by remember { mutableStateOf(list.title) }
+                    var draft by remember { mutableStateOf(category.title) }
                     val scope = rememberCoroutineScope()
 
                     val dismissState = rememberSwipeToDismissBoxState(
@@ -137,13 +137,13 @@ fun ListsScreen(
                         }
                     ) {
                         ListItem(
-                            headlineContent = { Text(list.title) },
+                            headlineContent = { Text(category.title) },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .combinedClickable(
-                                    onClick = { nav.navigate("list/${list.id}") },
+                                    onClick = { nav.navigate("category/${category.id}") },
                                     onLongClick = {
-                                        draft = list.title
+                                        draft = category.title
                                         edit = true
                                     }
                                 )
@@ -160,10 +160,10 @@ fun ListsScreen(
                                 scope.launch { dismissState.reset() }
                             },
                             title = { Text("Delete category?") },
-                            text = { Text(list.title) },
+                            text = { Text(category.title) },
                             confirmButton = {
                                 TextButton(onClick = {
-                                    vm.delete(list)
+                                    vm.delete(category)
                                     confirmDelete = false
                                 }) { Text("Delete") }
                             },
@@ -190,7 +190,7 @@ fun ListsScreen(
                             },
                             confirmButton = {
                                 TextButton(onClick = {
-                                    if (draft.isNotBlank()) vm.rename(list, draft)
+                                    if (draft.isNotBlank()) vm.rename(category, draft)
                                     edit = false
                                 }) { Text("Save") }
                             },

@@ -12,29 +12,29 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface TaskDao {
 
-    @Query("SELECT * FROM Task WHERE listId = :listId ORDER BY pos")
-    fun tasks(listId: Int): Flow<List<Task>>
-    @Query("SELECT MAX(pos) FROM Task WHERE listId = :id")
+    @Query("SELECT * FROM Task WHERE categoryId = :categoryId ORDER BY pos")
+    fun tasks(categoryId: Int): Flow<List<Task>>
+    @Query("SELECT MAX(pos) FROM Task WHERE categoryId = :id")
     suspend fun maxPos(id: Int): Int?
 
     @Query(
         """
-SELECT Task.*, Category.title AS listTitle, Category.color AS listColor
+SELECT Task.*, Category.title AS categoryTitle, Category.color AS categoryColor
 FROM Task
-JOIN Category ON Category.id = Task.listId
+JOIN Category ON Category.id = Task.categoryId
 WHERE due <= :date
 ORDER BY todoOrder ASC
 """
     )
-    fun dueOnDate(date: String): Flow<List<TaskWithList>>
+    fun dueOnDate(date: String): Flow<List<TaskWithCategoryInfo>>
 
     @Query("SELECT MAX(todoOrder) FROM Task")
     suspend fun maxTodoOrder(): Int?
 
-    @Query("DELETE FROM Task WHERE listId = :id AND completedDate IS NOT NULL AND recurrence = 'NONE'")
+    @Query("DELETE FROM Task WHERE categoryId = :id AND completedDate IS NOT NULL AND recurrence = 'NONE'")
     suspend fun deleteCompleted(id: Int)
 
-    @Query("SELECT MAX(pos) FROM Task WHERE listId = :categoryId")
+    @Query("SELECT MAX(pos) FROM Task WHERE categoryId = :categoryId")
     suspend fun getMaxPos(categoryId: Int): Int?
 
     @Update
@@ -51,7 +51,7 @@ ORDER BY todoOrder ASC
     @Query(
         """
 DELETE FROM Task
-WHERE listId = :listId
+WHERE categoryId = :categoryId
   AND text   = :text
   AND recurrence = :rec
   AND due    = :dueNext
@@ -59,7 +59,7 @@ WHERE listId = :listId
 """
     )
     suspend fun deleteNextInstance(
-        listId: Int, text: String,
+        categoryId: Int, text: String,
         rec: Recurrence, dueNext: String
     )
 }

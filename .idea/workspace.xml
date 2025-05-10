@@ -12,14 +12,14 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="95287d2c-9379-4c48-bc6a-ef10af53a523" name="Changes" comment="Refactored and allow recurrence">
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/MainActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/MainActivity.kt" afterDir="false" />
+    <list default="true" id="95287d2c-9379-4c48-bc6a-ef10af53a523" name="Changes" comment="Code tidy up and new apk version">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/data/AppDatabase.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/data/AppDatabase.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/data/CategoryDao.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/data/CategoryDao.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/data/CategoryRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/data/CategoryRepository.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/data/Recurrence.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/data/Recurrence.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/data/Task.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/data/Task.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/data/TaskDao.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/data/TaskDao.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/data/TaskWithList.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/data/TaskWithList.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/data/TaskWithList.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/data/TaskWithCategoryInfo.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/ui/AppNav.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/ui/AppNav.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/ui/CategoriesScreen.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/ui/CategoriesScreen.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/ui/TaskEditDialog.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/taskapp/ui/TaskEditDialog.kt" afterDir="false" />
@@ -57,6 +57,9 @@
     &quot;accountId&quot;: &quot;e127d3ba-951d-4358-b34a-fb3aaa7f7448&quot;
   }
 }</component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 0
@@ -318,7 +321,15 @@
       <option name="project" value="LOCAL" />
       <updated>1746870289791</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="Code tidy up and new apk version">
+      <option name="closed" value="true" />
+      <created>1746871434057</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1746871434057</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -344,6 +355,7 @@
     <MESSAGE value="Updated icon" />
     <MESSAGE value="Add editing and new task button to todoScreen" />
     <MESSAGE value="Refactored and allow recurrence" />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactored and allow recurrence" />
+    <MESSAGE value="Code tidy up and new apk version" />
+    <option name="LAST_COMMIT_MESSAGE" value="Code tidy up and new apk version" />
   </component>
 </project>

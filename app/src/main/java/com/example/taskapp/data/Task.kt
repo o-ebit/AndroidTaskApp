@@ -13,14 +13,14 @@ import androidx.room.PrimaryKey
     foreignKeys = [ForeignKey(
         entity = Category::class,
         parentColumns = ["id"],
-        childColumns = ["listId"],
+        childColumns = ["categoryId"],
         onDelete = ForeignKey.CASCADE
     )],
-    indices = [Index(value = ["listId"])]
+    indices = [Index(value = ["categoryId"])]
 )
 data class Task(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val listId: Int,
+    val categoryId: Int,
     val text: String,
     val pos: Int,
     val due: String? = null,

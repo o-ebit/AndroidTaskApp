@@ -11,11 +11,11 @@ import kotlinx.coroutines.launch
 
 class CategoriesVm(app: Application) : AndroidViewModel(app) {
     private val repo = CategoryRepository(app.db)
-    val lists = repo.lists.asStateFlow(viewModelScope, emptyList())
+    val categories = repo.categories.asStateFlow(viewModelScope, emptyList())
 
     fun add(title: String) = viewModelScope.launch { repo.addCategory(title) }
-    fun delete(list: Category) = viewModelScope.launch { repo.deleteCategory(list) }
-    fun rename(list: Category, newTitle: String) = viewModelScope.launch {
-        repo.renameCategory(list, newTitle)
+    fun delete(category: Category) = viewModelScope.launch { repo.deleteCategory(category) }
+    fun rename(category: Category, newTitle: String) = viewModelScope.launch {
+        repo.renameCategory(category, newTitle)
     }
 }

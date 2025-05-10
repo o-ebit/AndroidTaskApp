@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,6 +22,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -55,6 +57,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.taskapp.data.Category
 import com.example.taskapp.data.Recurrence
+import com.example.taskapp.data.Task
 import com.example.taskapp.data.recurrenceLabel
 import com.example.taskapp.viewmodel.CategoriesVm
 import com.example.taskapp.viewmodel.UnifiedTaskViewModel
@@ -68,34 +71,35 @@ import java.time.LocalDate
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun TasksScreen(
-    listId: Int,
+    categoryId: Int,
     onBack: () -> Unit
 ) {
     /* --- ViewModel factory --- */
     val app = LocalContext.current.applicationContext as Application
-    val factory = remember(listId) {
+    val factory = remember(categoryId) {
         object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                val handle = SavedStateHandle(mapOf("listId" to listId))
+                val handle = SavedStateHandle(mapOf("categoryId" to categoryId))
                 return UnifiedTaskViewModel(app, handle) as T
             }
         }
     }
     val vm: UnifiedTaskViewModel = viewModel(factory = factory)
     val categoriesVm: CategoriesVm = viewModel()
-    val allCategories by categoriesVm.lists.collectAsState()
+    val allCategories by categoriesVm.categories.collectAsState()
     if (allCategories.isEmpty()) return
-    val currentCategory: Category = allCategories.firstOrNull { it.id == listId }
+    val currentCategory: Category = allCategories.firstOrNull { it.id == categoryId }
         ?: error("No categories available to default to.")
     /* --- state --- */
-    val tasks by vm.tasksForList.collectAsState()
+    val tasks by vm.tasksForCategory.collectAsState()
     val title by vm.title.collectAsState("")
     var showAdd by remember { mutableStateOf(false) }
     val headerColor by vm.headerColor.collectAsState(0xFFEEEEEE)
     var askClear by remember { mutableStateOf(false) }
+    var editingTask by remember { mutableStateOf<Task?>(null) }
     val reorderState = rememberReorderableLazyListState(
-        onMove = { from, to -> vm.moveInList(tasks, from.index, to.index) }
+        onMove = { from, to -> vm.moveInCategoryPage(tasks, from.index, to.index) }
 
 
     )
@@ -105,7 +109,9 @@ fun TasksScreen(
                 TopAppBar(
                     title = { Text(title) },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.White
+                        containerColor = Color(0xFFEEEEEE),
+                        navigationIconContentColor = Color.Black,
+                        titleContentColor = Color.Black
                     ),
                     navigationIcon = {
                         IconButton(onClick = onBack) {
@@ -113,11 +119,12 @@ fun TasksScreen(
                         }
                     },
                     actions = {
-                        IconButton(
+                        Button(
                             onClick = { showAdd = true },
-                            modifier = Modifier
-                                .background(Color(0xFFF0F0F0), shape = MaterialTheme.shapes.small)
-                                .padding(4.dp)
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFCCCCCC) // darker than header
+                            ),
+                            contentPadding = PaddingValues(horizontal = 12.dp)
                         ) {
                             Icon(Icons.Default.Add, contentDescription = "Add", tint = Color.Black)
                         }
@@ -154,7 +161,7 @@ fun TasksScreen(
                     title = { Text("Remove completed tasks?") },
                     confirmButton = {
                         TextButton(onClick = {
-                            vm.clearCompleted(listId)
+                            vm.clearCompleted(categoryId)
                             askClear = false
                         }) { Text("Delete") }
                     },
@@ -173,7 +180,6 @@ fun TasksScreen(
             ) {
                 itemsIndexed(tasks, key = { _, task -> task.id }) { _, task ->
                     var ask by remember { mutableStateOf(false) }
-                    var edit by remember { mutableStateOf(false) }
                     val scope = rememberCoroutineScope()
 
                     val dismissState = rememberSwipeToDismissBoxState(
@@ -209,15 +215,13 @@ fun TasksScreen(
                             },
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
                         ) {
-                            val canDrag =
-                                dismissState.currentValue == SwipeToDismissBoxValue.Settled
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 8.dp, vertical = 2.dp)
                                     .combinedClickable(
                                         onClick = {},
-                                        onLongClick = { edit = true }
+                                        onLongClick = { editingTask = task }
                                     ),
                                 elevation = CardDefaults.cardElevation(elevation)
                             ) {
@@ -264,22 +268,6 @@ fun TasksScreen(
                         }
                     }
 
-                    if (edit) {
-                        TaskEditDialog(
-                            title = "Edit task",
-                            initialText = task.text,
-                            initialDue = task.due,
-                            initialRecurrence = task.recurrence,
-                            initialCategory = currentCategory,
-                            allCategories = allCategories,
-                            onSave = { t, d, rec, cId ->
-                                vm.rename(task, t, d, rec, cId)
-                                edit = false
-                            },
-                            onDismiss = { edit = false }
-                        )
-                    }
-
                     if (ask) {
                         AlertDialog(
                             onDismissRequest = {
@@ -305,12 +293,26 @@ fun TasksScreen(
                     }
                 }
             }
+            if (editingTask != null) {
+                TaskEditDialog(
+                    initialText = editingTask!!.text,
+                    initialDue = editingTask!!.due,
+                    initialRecurrence = editingTask!!.recurrence,
+                    initialCategory = allCategories.firstOrNull { it.id == editingTask!!.categoryId }
+                        ?: allCategories.first(),
+                    allCategories = allCategories,
+                    onSave = { t, d, rec, cId ->
+                        vm.updateValues(editingTask!!, t, d, rec, cId)
+                        editingTask = null
+                    },
+                    onDismiss = { editingTask = null }
+                )
+            }
 
         }
     }
     if (showAdd) {
         TaskEditDialog(
-            title = "Add task",
             initialText = "",
             initialDue = null,
             initialRecurrence = Recurrence.NONE,

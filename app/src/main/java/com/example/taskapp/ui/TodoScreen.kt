@@ -56,6 +56,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.taskapp.data.Recurrence
+import com.example.taskapp.data.TaskWithCategoryInfo
 import com.example.taskapp.data.recurrenceLabel
 import com.example.taskapp.viewmodel.CategoriesVm
 import com.example.taskapp.viewmodel.UnifiedTaskViewModel
@@ -74,10 +75,11 @@ fun TodoScreen(
     vm: UnifiedTaskViewModel = viewModel()
 ) {
     var dayOffset by rememberSaveable { mutableStateOf(0) }
+    var editingTask by remember { mutableStateOf<TaskWithCategoryInfo?>(null) }
     val dateStr = LocalDate.now().plusDays(dayOffset.toLong()).toString()
     val isToday = dayOffset == 0
     val categoriesVm: CategoriesVm = viewModel()
-    val allCategories by categoriesVm.lists.collectAsState()
+    val allCategories by categoriesVm.categories.collectAsState()
     val firstCategory = allCategories.firstOrNull()
     var showAdd by remember { mutableStateOf(false) }
     /* stream now depends on dateStr */
@@ -102,7 +104,7 @@ fun TodoScreen(
                                 slideInVertically { it } togetherWith slideOutVertically { -it }
                             else
                                 slideInVertically { -it } togetherWith slideOutVertically { it }
-                        }
+                        }, label = ""
                     ) { offset ->
                         Text(
                             when (offset) {
@@ -146,8 +148,14 @@ fun TodoScreen(
                         ) {
                             Text("All")
                         }
-                        IconButton(onClick = { showAdd = true }) {
-                            Icon(Icons.Default.Add, contentDescription = "Add")
+                        Button(
+                            onClick = { showAdd = true },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFCCCCCC) // darker than header
+                            ),
+                            contentPadding = PaddingValues(horizontal = 12.dp)
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = "Add", tint = Color.Black)
                         }
                     }
                 },
@@ -212,7 +220,6 @@ fun TodoScreen(
                 ) {
                     items(items, key = { it.task.id }) { row ->
                         val task = row.task
-                        var edit by remember { mutableStateOf(false) }
                         // Mark as done if completed on this date OR any date after this (for past views)
                         val isCompleted = task.completedDate != null &&
                                 (task.completedDate == dateStr ||
@@ -229,7 +236,7 @@ fun TodoScreen(
                                         .padding(horizontal = 12.dp, vertical = 4.dp)
                                         .combinedClickable(
                                             onClick = {}, // no-op or use for quick mark/done
-                                            onLongClick = { edit = true } // <-- open editor
+                                            onLongClick = { editingTask = row }
                                         ),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
@@ -250,12 +257,12 @@ fun TodoScreen(
                                     )
 
                                     Surface(
-                                        color = Color(row.listColor),
+                                        color = Color(row.categoryColor),
                                         shape = RoundedCornerShape(8.dp),
                                         modifier = Modifier.padding(start = 4.dp)
                                     ) {
                                         Text(
-                                            row.listTitle,
+                                            row.categoryTitle,
                                             style = MaterialTheme.typography.labelSmall,
                                             modifier = Modifier.padding(
                                                 horizontal = 6.dp,
@@ -283,22 +290,6 @@ fun TodoScreen(
                                             .detectReorder(reorderState)
                                     )
                                 }
-                                if (edit) {
-                                    TaskEditDialog(
-                                        title = "Edit task",
-                                        initialText = task.text,
-                                        initialDue = task.due,
-                                        initialRecurrence = task.recurrence,
-                                        initialCategory = allCategories.firstOrNull { it.id == row.task.listId }
-                                            ?: allCategories.first(),
-                                        allCategories = allCategories,
-                                        onSave = { t, d, rec, cId ->
-                                            vm.rename(row.task, t, d, rec, cId)
-                                            edit = false
-                                        },
-                                        onDismiss = { edit = false }
-                                    )
-                                }
                                 HorizontalDivider(thickness = 0.5.dp)
                             }
                         }
@@ -309,10 +300,25 @@ fun TodoScreen(
                         Spacer(modifier = Modifier.height(80.dp))
                     }
                 }
+                if (editingTask != null) {
+                    TaskEditDialog(
+                        initialText = editingTask!!.task.text,
+                        initialDue = editingTask!!.task.due,
+                        initialRecurrence = editingTask!!.task.recurrence,
+                        initialCategory = allCategories.firstOrNull { it.id == editingTask!!.task.categoryId }
+                            ?: allCategories.first(),
+                        allCategories = allCategories,
+                        onSave = { t, d, rec, cId ->
+                            vm.updateValues(editingTask!!.task, t, d, rec, cId)
+                            editingTask = null
+                        },
+                        onDismiss = { editingTask = null }
+                    )
+                }
             }
+
             if (showAdd && firstCategory != null) {
                 TaskEditDialog(
-                    title = "New task",
                     initialText = "",
                     initialDue = dateStr,
                     initialRecurrence = Recurrence.NONE,

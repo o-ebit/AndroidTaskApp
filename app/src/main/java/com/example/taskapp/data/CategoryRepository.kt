@@ -5,8 +5,8 @@ import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
 class CategoryRepository(private val db: AppDatabase) {
-    val lists = db.categoryDao().all()
-    fun listItems(id: Int) = db.taskDao().tasks(id)
+    val categories = db.categoryDao().all()
+    fun tasks(id: Int) = db.taskDao().tasks(id)
 
     private val palette = listOf(
         0xFFF44336, // Red
@@ -50,13 +50,10 @@ class CategoryRepository(private val db: AppDatabase) {
         return db.taskDao().getMaxPos(categoryId) ?: -1
     }
 
-    suspend fun clearCompleted(listId: Int) =
-        db.taskDao().deleteCompleted(listId)
+    suspend fun clearCompleted(categoryId: Int) =
+        db.taskDao().deleteCompleted(categoryId)
 
-    suspend fun reorderTodo(list: List<Task>) =
-        db.taskDao().updateMany(list)
-
-    suspend fun deleteCategory(list: Category) = db.categoryDao().delete(list)
+    suspend fun deleteCategory(category: Category) = db.categoryDao().delete(category)
 
     suspend fun addTask(
         categoryId: Int,
@@ -67,7 +64,7 @@ class CategoryRepository(private val db: AppDatabase) {
         val task = Task(
             text = text,
             due = due,
-            listId = categoryId,
+            categoryId = categoryId,
             pos = getMaxPos(categoryId) + 1,
             recurrence = rec
         )
@@ -75,7 +72,7 @@ class CategoryRepository(private val db: AppDatabase) {
         db.taskDao().insert(task)
     }
 
-    suspend fun moveTasks(list: List<Task>) = db.taskDao().updateMany(list)
+    suspend fun moveTasks(category: List<Task>) = db.taskDao().updateMany(category)
 
     suspend fun deleteTask(task: Task) {
         Log.d("TaskAdd", "Deleting task: $task")
@@ -87,7 +84,7 @@ class CategoryRepository(private val db: AppDatabase) {
     suspend fun renameCategory(list: Category, newTitle: String) =
         db.categoryDao().update(list.copy(title = newTitle))
 
-    fun dueOnDate(date: String): Flow<List<TaskWithList>> {
+    fun dueOnDate(date: String): Flow<List<TaskWithCategoryInfo>> {
         return db.taskDao().dueOnDate(date)
     }
 
@@ -102,12 +99,12 @@ class CategoryRepository(private val db: AppDatabase) {
             if (nowDone) {
                 if (nextDate != null) {
                     // create next task only if nextDate is valid
-                    addTask(task.listId, task.text, nextDate, task.recurrence)
+                    addTask(task.categoryId, task.text, nextDate, task.recurrence)
                 }
             } else {
                 if (nextDate != null) {
                     db.taskDao().deleteNextInstance(
-                        task.listId, task.text, task.recurrence, nextDate
+                        task.categoryId, task.text, task.recurrence, nextDate
                     )
                 }
             }
@@ -118,14 +115,14 @@ class CategoryRepository(private val db: AppDatabase) {
         task: Task,
         newText: String,
         newDue: String?,
-        newRec: Recurrence,
-        newListId: Int,
+        newRecurrence: Recurrence,
+        newCategoryId: Int,
     ) {
         val updated = task.copy(
             text = newText,
             due = newDue,
-            listId = newListId,
-            recurrence = newRec
+            categoryId = newCategoryId,
+            recurrence = newRecurrence
         )
         Log.d("TaskAdd", "Updating task: $task")
         db.taskDao().update(updated)

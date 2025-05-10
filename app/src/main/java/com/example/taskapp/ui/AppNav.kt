@@ -9,15 +9,17 @@ import androidx.navigation.compose.rememberNavController
 fun AppNav() {
     val nav = rememberNavController()
 
-    NavHost(navController = nav, startDestination = "lists") {
-        composable("todos") { TodoScreen(onBack = { nav.popBackStack() }) }
-        composable("lists") {
-            ListsScreen(nav)
+    NavHost(navController = nav, startDestination = "categories") {
+        composable("todos") { TodoScreen(onBack = { if (nav.previousBackStackEntry != null) nav.popBackStack() }) }
+        composable("categories") {
+            CategoriesScreen(nav)
         }
-        composable("list/{listId}") { backStackEntry ->
-            val listId = backStackEntry.arguments?.getString("listId")?.toIntOrNull()
-            if (listId != null) {
-                TasksScreen(listId = listId, onBack = { nav.popBackStack() })
+        composable("category/{categoryId}") { backStackEntry ->
+            val categoryId = backStackEntry.arguments?.getString("categoryId")?.toIntOrNull()
+            if (categoryId != null) {
+                TasksScreen(
+                    categoryId = categoryId,
+                    onBack = { if (nav.previousBackStackEntry != null) nav.popBackStack() })
             }
         }
     }

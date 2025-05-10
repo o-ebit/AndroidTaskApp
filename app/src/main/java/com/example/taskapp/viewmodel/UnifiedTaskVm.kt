@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.taskapp.data.CategoryRepository
 import com.example.taskapp.data.Recurrence
 import com.example.taskapp.data.Task
-import com.example.taskapp.data.TaskWithList
+import com.example.taskapp.data.TaskWithCategoryInfo
 import com.example.taskapp.util.db
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,19 +23,19 @@ class UnifiedTaskViewModel(app: Application, state: SavedStateHandle? = null) :
 
     private val repo = CategoryRepository(app.db)
 
-    private val listId = state?.get<Int>("listId")
+    private val categoryId = state?.get<Int>("categoryId")
 
-    val tasksForList: StateFlow<List<Task>> =
-        if (listId != null) {
-            repo.listItems(listId)
+    val tasksForCategory: StateFlow<List<Task>> =
+        if (categoryId != null) {
+            repo.tasks(categoryId)
                 .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
         } else {
             MutableStateFlow(emptyList())
         }
 
     val title: StateFlow<String> =
-        if (listId != null) {
-            repo.categoryId(listId)
+        if (categoryId != null) {
+            repo.categoryId(categoryId)
                 .map { it?.title ?: "" }
                 .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
         } else {
@@ -43,8 +43,8 @@ class UnifiedTaskViewModel(app: Application, state: SavedStateHandle? = null) :
         }
 
     val headerColor: StateFlow<Long> =
-        if (listId != null) {
-            repo.categoryId(listId)
+        if (categoryId != null) {
+            repo.categoryId(categoryId)
                 .map { it?.color ?: 0xFFEEEEEE }
                 .stateIn(viewModelScope, SharingStarted.Lazily, 0xFFEEEEEE)
         } else {
@@ -58,7 +58,7 @@ class UnifiedTaskViewModel(app: Application, state: SavedStateHandle? = null) :
         _showOutstanding.value = outstanding
     }
 
-    fun dueOnDate(dateStr: String): Flow<List<TaskWithList>> =
+    fun dueOnDate(dateStr: String): Flow<List<TaskWithCategoryInfo>> =
         combine(repo.dueOnDate(dateStr), _showOutstanding) { all, show ->
             if (show) all.filter { it.task.completedDate == null } else all
         }
@@ -67,7 +67,7 @@ class UnifiedTaskViewModel(app: Application, state: SavedStateHandle? = null) :
         repo.addTask(categoryId, text, due, rec)
     }
 
-    fun rename(task: Task, newText: String, newDue: String?, rec: Recurrence, newCategoryId: Int) =
+    fun updateValues(task: Task, newText: String, newDue: String?, rec: Recurrence, newCategoryId: Int) =
         viewModelScope.launch {
             repo.updateTask(task, newText, newDue, rec, newCategoryId)
         }
@@ -76,15 +76,15 @@ class UnifiedTaskViewModel(app: Application, state: SavedStateHandle? = null) :
         repo.deleteTask(task)
     }
 
-    fun clearCompleted(listId: Int) = viewModelScope.launch {
-        repo.clearCompleted(listId)
+    fun clearCompleted(categoryId: Int) = viewModelScope.launch {
+        repo.clearCompleted(categoryId)
     }
 
-    fun toggleDone(item: TaskWithList, dateStr: String) = viewModelScope.launch {
+    fun toggleDone(item: TaskWithCategoryInfo, dateStr: String) = viewModelScope.launch {
         repo.toggleToday(item.task, dateStr)
     }
 
-    fun moveInList(list: List<Task>, from: Int, to: Int) = viewModelScope.launch {
+    fun moveInCategoryPage(list: List<Task>, from: Int, to: Int) = viewModelScope.launch {
         val current = list.toMutableList()
         val itm = current.removeAt(from)
         current.add(to, itm)
